@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/alfonzm/lazydb/internal/app"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+  app.Start()
 }
