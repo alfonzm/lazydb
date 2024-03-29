@@ -3,18 +3,31 @@ package app
 import (
 	"fmt"
 
-	"github.com/alfonzm/lazydb/internal/database"
+	"github.com/alfonzm/lazydb/internal/db"
 )
 
-type App struct{}
-
 func Start() int {
-	database := database.NewConnection()
+	dbClient, err := db.NewDBClient("root:root@/finance")
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
 
-	queryResult := database.Query()
+	tables, err := dbClient.GetTables();
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
 
-  fmt.Println(queryResult)
-	fmt.Println(database)
+	fmt.Println(tables)
 
-  return 0
+  rows, err := dbClient.GetRecords("accounts")
+  if err != nil {
+    fmt.Println(err)
+    return 1
+  }
+
+  fmt.Println(rows)
+
+	return 0
 }
