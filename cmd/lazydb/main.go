@@ -1,9 +1,11 @@
 package main
 
 import (
+	"os"
+
 	"github.com/alfonzm/lazydb/internal/app"
 )
 
 func main() {
-  app.Start()
+  os.Exit(app.Start())
 }

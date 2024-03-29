@@ -8,11 +8,13 @@ import (
 
 type App struct{}
 
-func Start() {
+func Start() int {
 	database := database.NewConnection()
 
 	queryResult := database.Query()
 
   fmt.Println(queryResult)
 	fmt.Println(database)
+
+  return 0
 }
