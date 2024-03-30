@@ -14,10 +14,11 @@ type Results struct {
 	table         *tview.Table
 	db            *db.DBClient
 	filter        *tview.InputField
+	pages         *tview.Pages
 	selectedTable string
 }
 
-func NewResults(app *tview.Application, db *db.DBClient) (*Results, error) {
+func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
 	table := tview.NewTable()
 	filter := tview.NewInputField()
 
@@ -35,6 +36,7 @@ func NewResults(app *tview.Application, db *db.DBClient) (*Results, error) {
 		view:   view,
 		db:     db,
 		filter: filter,
+		pages:  pages,
 	}
 
 	results.renderFilterField()
@@ -68,7 +70,8 @@ func (r *Results) RenderTable(table string, where string) error {
 	}
 	r.table.SetSelectable(true, true)
 	r.table.SetSelectedFunc(func(row, column int) {
-		// edit field
+		// show editor page
+		r.pages.ShowPage("editor")
 	})
 
 	// Iterate over records and fill table
