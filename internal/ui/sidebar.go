@@ -41,27 +41,11 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 		filter:  filter,
 	}
 
+	// Render all components
 	if err := sidebar.renderTableList(""); err != nil {
 		return nil, fmt.Errorf("Failed to render table list: %w", err)
 	}
-
-	filter.SetLabel("Filter")
-	filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			filter.SetText("")
-			sidebar.renderTableList("")
-			app.SetFocus(list)
-		}
-		return event
-	})
-	filter.SetDoneFunc(func(key tcell.Key) {
-		if key == tcell.KeyEnter {
-			filterText := filter.GetText()
-			sidebar.renderTableList(filterText)
-			app.SetFocus(list)
-		}
-	})
-
+	sidebar.renderFilterField()
 	sidebar.setKeyBindings()
 
 	return sidebar, nil
@@ -87,7 +71,7 @@ func (sidebar *Sidebar) setKeyBindings() {
 				}
 			}
 
-      // Clear filter when pressing escape
+			// Clear filter when pressing escape
 			if event.Key() == tcell.KeyEscape {
 				sidebar.filter.SetText("")
 				sidebar.renderTableList("")
@@ -130,4 +114,22 @@ func (s *Sidebar) renderTableList(filter string) error {
 	}
 
 	return nil
+}
+
+func (s *Sidebar) renderFilterField() {
+	s.filter.SetLabel("Filter")
+	s.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape {
+			s.filter.SetText("")
+			s.renderTableList("")
+			s.app.SetFocus(s.list)
+		}
+		return event
+	})
+	s.filter.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEnter {
+			s.renderTableList(s.filter.GetText())
+			s.app.SetFocus(s.list)
+		}
+	})
 }
