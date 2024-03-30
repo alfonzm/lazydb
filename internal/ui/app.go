@@ -1,11 +1,12 @@
 package ui
 
 import (
+	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-func Start() error {
+func Start(db *db.DBClient) error {
 	app := tview.NewApplication()
 
 	// Press q to quit
@@ -18,19 +19,24 @@ func Start() error {
 		return event
 	})
 
-  // Setup main page
-	sidebar := NewSidebar()
-	results := NewResults()
+	// Setup sidebar components
+	sidebar, err := NewSidebar(db)
+	if err != nil {
+		return err
+	}
+
+	// Setup results component
+	results, err := NewResults(db)
 	flex := tview.NewFlex().
-		AddItem(sidebar, 0, 1, false).
-		AddItem(results, 0, 5, false)
+		AddItem(sidebar.view, 0, 1, false).
+		AddItem(results.view, 0, 6, false)
 
   // Setup Pages
 	pages := tview.NewPages()
 	pages.AddPage("main", flex, true, true)
 
-  // Run the app
-	if err := app.SetRoot(pages, true).Run(); err != nil {
+	// Run the app
+	if err := app.SetRoot(pages, true).SetFocus(sidebar.view).Run(); err != nil {
 		return err
 	}
 
