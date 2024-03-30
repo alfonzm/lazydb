@@ -134,3 +134,24 @@ func (client *DBClient) GetColumns(tableName string) (results []string, err erro
 
 	return columns, nil
 }
+
+func (client *DBClient) UpdateRecordById(
+	tableName string,
+	id string,
+	record map[string]interface{},
+) error {
+	query := fmt.Sprintf("UPDATE %s SET ", tableName)
+
+	for col, val := range record {
+		query += fmt.Sprintf("%s = '%s', ", col, val.(string))
+	}
+
+	query = fmt.Sprintf("%s WHERE id = %s", query[:len(query)-2], id)
+
+	_, err := client.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
