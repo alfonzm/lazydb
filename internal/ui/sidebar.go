@@ -9,25 +9,15 @@ import (
 )
 
 type Sidebar struct {
-	view *tview.Flex
-	list *tview.List
-	db   *db.DBClient
+	app     *tview.Application
+	view    *tview.Flex
+	list    *tview.List
+	db      *db.DBClient
+	results *Results
 }
 
-func NewSidebar(db *db.DBClient) (*Sidebar, error) {
-	tableNames, err := db.GetTables()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get tables: %w", err)
-	}
-
-	// Display the tables in a list
+func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sidebar, error) {
 	list := tview.NewList()
-	list.ShowSecondaryText(false).SetHighlightFullLine(true).
-		SetTitle("Tables")
-
-	for _, table := range tableNames {
-		list.AddItem(table, "", 0, nil)
-	}
 
 	// Define container for the sidebar
 	view := tview.NewFlex()
@@ -39,9 +29,15 @@ func NewSidebar(db *db.DBClient) (*Sidebar, error) {
 	view.SetBorder(true).SetTitle("Sidebar")
 
 	sidebar := &Sidebar{
-		view: view,
-		list: list,
-		db:   db,
+		view:    view,
+		list:    list,
+		db:      db,
+		results: results,
+		app:     app,
+	}
+
+	if err := sidebar.renderTableList(); err != nil {
+		return nil, fmt.Errorf("Failed to render table list: %w", err)
 	}
 
 	sidebar.setKeyBindings()
@@ -63,9 +59,28 @@ func (sidebar *Sidebar) setKeyBindings() {
 			case 'k':
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
 			case '/':
-				// app.SetFocus(filterUI)
+				// focus filter UI
 			}
 		}
 		return event
 	})
+}
+
+func (s *Sidebar) renderTableList() error {
+	tableNames, err := s.db.GetTables()
+	if err != nil {
+		return fmt.Errorf("Failed to get tables: %w", err)
+	}
+
+	s.list.ShowSecondaryText(false).SetHighlightFullLine(true).
+		SetTitle("Tables")
+
+	for _, table := range tableNames {
+		s.list.AddItem(table, "", 0, func() {
+			s.results.RenderTable(table)
+			s.app.SetFocus(s.results.table)
+		})
+	}
+
+	return nil
 }

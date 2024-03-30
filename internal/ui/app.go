@@ -19,14 +19,15 @@ func Start(db *db.DBClient) error {
 		return event
 	})
 
+	// Setup results component
+  results, err := NewResults(db)
+
 	// Setup sidebar components
-	sidebar, err := NewSidebar(db)
+  sidebar, err := NewSidebar(app, db, results)
 	if err != nil {
 		return err
 	}
 
-	// Setup results component
-	results, err := NewResults(db)
 	flex := tview.NewFlex().
 		AddItem(sidebar.view, 0, 1, false).
 		AddItem(results.view, 0, 6, false)
@@ -36,7 +37,7 @@ func Start(db *db.DBClient) error {
 	pages.AddPage("main", flex, true, true)
 
 	// Run the app
-	if err := app.SetRoot(pages, true).SetFocus(sidebar.view).Run(); err != nil {
+	if err := app.SetRoot(pages, true).SetFocus(sidebar.list).Run(); err != nil {
 		return err
 	}
 
