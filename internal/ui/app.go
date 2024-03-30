@@ -6,24 +6,20 @@ import (
 	"github.com/rivo/tview"
 )
 
-func Start(db *db.DBClient) error {
-	app := tview.NewApplication()
+type App struct {
+	*tview.Application
+	sidebar *Sidebar
+	results *Results
+}
 
-	// Press q to quit
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyRune {
-			if event.Rune() == 'q' {
-				app.Stop()
-			}
-		}
-		return event
-	})
+func Start(db *db.DBClient) error {
+	app := &App{Application: tview.NewApplication()}
 
 	// Setup results component
-  results, err := NewResults(db)
+	results, err := NewResults(db)
 
 	// Setup sidebar components
-  sidebar, err := NewSidebar(app, db, results)
+	sidebar, err := NewSidebar(app.Application, db, results)
 	if err != nil {
 		return err
 	}
@@ -36,10 +32,37 @@ func Start(db *db.DBClient) error {
 	pages := tview.NewPages()
 	pages.AddPage("main", flex, true, true)
 
+	app.setKeyBindings()
+	app.sidebar = sidebar
+	app.results = results
+
 	// Run the app
 	if err := app.SetRoot(pages, true).SetFocus(sidebar.list).Run(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// set keybindings
+func (app *App) setKeyBindings() {
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune {
+			switch event.Rune() {
+			case 'q':
+				app.Stop()
+			}
+		}
+
+		if event.Key() == tcell.KeyTab {
+			switch app.GetFocus() {
+			case app.sidebar.list:
+				app.SetFocus(app.results.table)
+			case app.results.table:
+				app.SetFocus(app.sidebar.list)
+			}
+		}
+
+		return event
+	})
 }

@@ -64,6 +64,15 @@ func (sidebar *Sidebar) setKeyBindings() {
 		}
 		return event
 	})
+
+	sidebar.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			// Hack: For some reason, tab key moves the focus to the next item
+			// so we need to move it back to the previous item
+			sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
+		}
+		return event
+	})
 }
 
 func (s *Sidebar) renderTableList() error {
