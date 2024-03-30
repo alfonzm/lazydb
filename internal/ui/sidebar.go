@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
@@ -22,7 +23,6 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 
 	// Filter
 	filter := tview.NewInputField()
-	filter.SetLabel("Filter")
 
 	// Define container for the sidebar
 	view := tview.NewFlex()
@@ -41,9 +41,26 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 		filter:  filter,
 	}
 
-	if err := sidebar.renderTableList(); err != nil {
+	if err := sidebar.renderTableList(""); err != nil {
 		return nil, fmt.Errorf("Failed to render table list: %w", err)
 	}
+
+	filter.SetLabel("Filter")
+	filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape {
+			filter.SetText("")
+			sidebar.renderTableList("")
+			app.SetFocus(list)
+		}
+		return event
+	})
+	filter.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEnter {
+			filterText := filter.GetText()
+			sidebar.renderTableList(filterText)
+			app.SetFocus(list)
+		}
+	})
 
 	sidebar.setKeyBindings()
 
@@ -52,20 +69,28 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 
 func (sidebar *Sidebar) setKeyBindings() {
 	sidebar.view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if sidebar.app.GetFocus() != sidebar.filter && event.Key() == tcell.KeyRune {
-			switch event.Rune() {
-			case 'j':
-				// pressing j at the end of the list goes to the top
-				if sidebar.list.GetItemCount()-1 == sidebar.list.GetCurrentItem() {
-					sidebar.list.SetCurrentItem(0)
-				} else {
-					sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() + 1)
+		if sidebar.app.GetFocus() != sidebar.filter {
+			if event.Key() == tcell.KeyRune {
+				switch event.Rune() {
+				case 'j':
+					// pressing j at the end of the list goes to the top
+					if sidebar.list.GetItemCount()-1 == sidebar.list.GetCurrentItem() {
+						sidebar.list.SetCurrentItem(0)
+					} else {
+						sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() + 1)
+					}
+				case 'k':
+					sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
+				case '/':
+					sidebar.app.SetFocus(sidebar.filter)
+					return nil // prevents adding '/' char to the input field
 				}
-			case 'k':
-				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
-			case '/':
-				sidebar.app.SetFocus(sidebar.filter)
-				return nil // prevents adding '/' char to the input field
+			}
+
+      // Clear filter when pressing escape
+			if event.Key() == tcell.KeyEscape {
+				sidebar.filter.SetText("")
+				sidebar.renderTableList("")
 			}
 		}
 		return event
@@ -81,7 +106,9 @@ func (sidebar *Sidebar) setKeyBindings() {
 	})
 }
 
-func (s *Sidebar) renderTableList() error {
+func (s *Sidebar) renderTableList(filter string) error {
+	s.list.Clear()
+
 	tableNames, err := s.db.GetTables()
 	if err != nil {
 		return fmt.Errorf("Failed to get tables: %w", err)
@@ -90,7 +117,12 @@ func (s *Sidebar) renderTableList() error {
 	s.list.ShowSecondaryText(false).SetHighlightFullLine(true).
 		SetTitle("Tables")
 
+		// filter by if table name contains filter
 	for _, table := range tableNames {
+		if filter != "" && !strings.Contains(strings.ToLower(table), strings.ToLower(filter)) {
+			continue
+		}
+
 		s.list.AddItem(table, "", 0, func() {
 			s.results.RenderTable(table)
 			s.app.SetFocus(s.results.table)
