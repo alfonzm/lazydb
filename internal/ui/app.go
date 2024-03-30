@@ -47,6 +47,11 @@ func Start(db *db.DBClient) error {
 // set keybindings
 func (app *App) setKeyBindings() {
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// If the focus is on an input field, early return
+		if _, ok := app.GetFocus().(*tview.InputField); ok {
+			return event
+		}
+
 		if event.Key() == tcell.KeyRune {
 			switch event.Rune() {
 			case 'q':
