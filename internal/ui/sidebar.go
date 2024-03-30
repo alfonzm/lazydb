@@ -70,7 +70,7 @@ func (sidebar *Sidebar) setKeyBindings() {
 			}
 
 			// Clear filter when pressing escape
-			if event.Key() == tcell.KeyEscape {
+			if event.Key() == tcell.KeyEscape && sidebar.filter.GetText() != "" {
 				sidebar.filter.SetText("")
 				sidebar.renderTableList("")
 			}
@@ -106,7 +106,7 @@ func (s *Sidebar) renderTableList(filter string) error {
 		}
 
 		s.list.AddItem(table, "", 0, func() {
-			s.results.RenderTable(table)
+			s.results.RenderTable(table, "")
 			// s.app.SetFocus(s.results.table)
 		})
 	}
@@ -118,9 +118,11 @@ func (s *Sidebar) renderFilterField() {
 	s.filter.SetLabel("Filter")
 	s.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			s.filter.SetText("")
-			s.renderTableList("")
-			s.app.SetFocus(s.list)
+			if s.filter.GetText() != "" {
+				s.filter.SetText("")
+				s.renderTableList("")
+				s.app.SetFocus(s.list)
+			}
 		}
 		return event
 	})

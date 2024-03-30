@@ -16,7 +16,7 @@ func Start(db *db.DBClient) error {
 	app := &App{Application: tview.NewApplication()}
 
 	// Setup results component
-	results, err := NewResults(db)
+	results, err := NewResults(app.Application, db)
 
 	// Setup sidebar components
 	sidebar, err := NewSidebar(app.Application, db, results)
@@ -28,7 +28,7 @@ func Start(db *db.DBClient) error {
 		AddItem(sidebar.view, 0, 1, false).
 		AddItem(results.view, 0, 6, false)
 
-  // Setup Pages
+		// Setup Pages
 	pages := tview.NewPages()
 	pages.AddPage("main", flex, true, true)
 

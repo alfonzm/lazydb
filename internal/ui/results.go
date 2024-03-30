@@ -4,40 +4,54 @@ import (
 	"fmt"
 
 	"github.com/alfonzm/lazydb/internal/db"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type Results struct {
-	view  *tview.Flex
-	table *tview.Table
-	db    *db.DBClient
+	app           *tview.Application
+	view          *tview.Flex
+	table         *tview.Table
+	db            *db.DBClient
+	filter        *tview.InputField
+	selectedTable string
 }
 
-func NewResults(db *db.DBClient) (*Results, error) {
+func NewResults(app *tview.Application, db *db.DBClient) (*Results, error) {
 	table := tview.NewTable()
+	filter := tview.NewInputField()
 
 	view := tview.NewFlex()
 	view.SetBorder(true).
 		SetTitle("Results").
 		SetBorder(true)
 	view.SetDirection(tview.FlexRow).
-		AddItem(nil, 1, 1, false).
+		AddItem(filter, 1, 1, false).
 		AddItem(table, 0, 1, false)
 
-	return &Results{
-		table: table,
-		view:  view,
-		db:    db,
-	}, nil
+	results := &Results{
+		app:    app,
+		table:  table,
+		view:   view,
+		db:     db,
+		filter: filter,
+	}
+
+	results.renderFilterField()
+	results.setKeyBindings()
+
+	return results, nil
 }
 
-func (r *Results) RenderTable(table string) error {
+func (r *Results) RenderTable(table string, where string) error {
+	r.selectedTable = table
+
 	dbColumns, err := r.db.GetColumns(table)
 	if err != nil {
 		return fmt.Errorf("Error getting columns")
 	}
 
-	dbRecords, err := r.db.GetRecords(table)
+	dbRecords, err := r.db.GetRecords(table, where)
 	if err != nil {
 		return fmt.Errorf("Error getting records")
 	}
@@ -67,8 +81,7 @@ func (r *Results) RenderTable(table string) error {
 			// if DB value is null, set valStr to "NULL"
 			if ok && recordValue == nil {
 				// TODO: For some reason this is not working
-				// Maybe there is a better way to check for NULL DB values
-				cellString = "NULL"
+				// Maybe there is a better way to check for NULL DB values cellString = "NULL"
 			} else if ok && recordValue != nil {
 				cellString = fmt.Sprintf("%v", recordValue)
 			}
@@ -83,4 +96,47 @@ func (r *Results) RenderTable(table string) error {
 	r.table.Select(0, 0)
 
 	return nil
+}
+
+func (r *Results) renderFilterField() {
+	r.filter.SetLabel("WHERE ").
+		SetFieldBackgroundColor(tcell.ColorBlack).
+		SetDoneFunc(func(key tcell.Key) {
+			if key == tcell.KeyEnter {
+				where := r.filter.GetText()
+				r.RenderTable(r.selectedTable, where)
+
+				r.app.SetFocus(r.table)
+			}
+		})
+}
+
+func (r *Results) setKeyBindings() {
+	// Table key bindings
+	r.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// press /
+		if event.Key() == tcell.KeyRune && event.Rune() == '/' {
+			r.app.SetFocus(r.filter)
+		}
+
+		// press escape clears filter
+		if event.Key() == tcell.KeyEscape {
+			r.clearFilter()
+		}
+		return event
+	})
+
+	// Filter field key bindings
+	r.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape {
+			r.clearFilter()
+		}
+		return event
+	})
+}
+
+func (r *Results) clearFilter() {
+	r.filter.SetText("")
+	r.RenderTable(r.selectedTable, "")
+	r.app.SetFocus(r.table)
 }

@@ -50,8 +50,14 @@ func (client *DBClient) GetTables() ([]string, error) {
 	return tableNames, nil
 }
 
-func (client *DBClient) GetRecords(table string) ([]map[string]interface{}, error) {
-	rows, err := client.db.Query(fmt.Sprintf("SELECT * FROM %s", table))
+func (client *DBClient) GetRecords(table string, where string) ([]map[string]interface{}, error) {
+	query := fmt.Sprintf("SELECT * FROM %s", table)
+
+	if where != "" {
+		query = fmt.Sprintf("SELECT * FROM %s WHERE %s", table, where)
+	}
+
+	rows, err := client.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get records from table: %w", err)
 	}
