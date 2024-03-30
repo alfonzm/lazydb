@@ -20,11 +20,9 @@ type Sidebar struct {
 
 func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sidebar, error) {
 	list := tview.NewList()
-
-	// Filter
 	filter := tview.NewInputField()
 
-	// Define container for the sidebar
+	// Sidebar main container
 	view := tview.NewFlex()
 	view.SetTitle("Tables")
 	view.SetBorder(true)
