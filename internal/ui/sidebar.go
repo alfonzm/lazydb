@@ -14,19 +14,23 @@ type Sidebar struct {
 	list    *tview.List
 	db      *db.DBClient
 	results *Results
+	filter  *tview.InputField
 }
 
 func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sidebar, error) {
 	list := tview.NewList()
+
+	// Filter
+	filter := tview.NewInputField()
+	filter.SetLabel("Filter")
 
 	// Define container for the sidebar
 	view := tview.NewFlex()
 	view.SetTitle("Tables")
 	view.SetBorder(true)
 	view.SetDirection(tview.FlexRow).
+		AddItem(filter, 1, 1, false).
 		AddItem(list, 0, 1, false)
-
-	view.SetBorder(true).SetTitle("Sidebar")
 
 	sidebar := &Sidebar{
 		view:    view,
@@ -34,6 +38,7 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 		db:      db,
 		results: results,
 		app:     app,
+		filter:  filter,
 	}
 
 	if err := sidebar.renderTableList(); err != nil {
@@ -47,7 +52,7 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 
 func (sidebar *Sidebar) setKeyBindings() {
 	sidebar.view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyRune {
+		if sidebar.app.GetFocus() != sidebar.filter && event.Key() == tcell.KeyRune {
 			switch event.Rune() {
 			case 'j':
 				// pressing j at the end of the list goes to the top
@@ -59,7 +64,8 @@ func (sidebar *Sidebar) setKeyBindings() {
 			case 'k':
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
 			case '/':
-				// focus filter UI
+				sidebar.app.SetFocus(sidebar.filter)
+				return nil // prevents adding '/' char to the input field
 			}
 		}
 		return event
