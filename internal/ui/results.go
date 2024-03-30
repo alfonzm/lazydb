@@ -12,9 +12,10 @@ type Results struct {
 	app           *tview.Application
 	view          *tview.Flex
 	table         *tview.Table
-	db            *db.DBClient
 	filter        *tview.InputField
 	pages         *tview.Pages
+	db            *db.DBClient
+	editor        *Editor
 	selectedTable string
 }
 
@@ -70,8 +71,8 @@ func (r *Results) RenderTable(table string, where string) error {
 	}
 	r.table.SetSelectable(true, true)
 	r.table.SetSelectedFunc(func(row, column int) {
-		// show editor page
 		r.pages.ShowPage("editor")
+		r.editor.textArea.SetText(r.table.GetCell(row, column).Text, true)
 	})
 
 	// Iterate over records and fill table

@@ -33,6 +33,8 @@ func Start(db *db.DBClient) error {
 		return err
 	}
 
+	results.editor = editor
+
 	flex := tview.NewFlex().
 		AddItem(sidebar.view, 0, 1, false).
 		AddItem(results.view, 0, 6, false)

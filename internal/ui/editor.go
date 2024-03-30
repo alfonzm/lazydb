@@ -7,9 +7,10 @@ import (
 )
 
 type Editor struct {
-	app     *tview.Application
-	results *Results
-	view    *tview.Flex
+	app      *tview.Application
+	results  *Results
+	view     *tview.Flex
+	textArea *tview.TextArea
 }
 
 func NewEditor(
@@ -65,8 +66,9 @@ func NewEditor(
 		AddItem(nil, 0, 1, false)
 
 	return &Editor{
-		app:     app,
-		view:    recordEditor,
-		results: results,
+		app:      app,
+		view:     recordEditor,
+		results:  results,
+		textArea: textArea,
 	}, nil
 }
