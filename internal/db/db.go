@@ -95,3 +95,36 @@ func (client *DBClient) GetRecords(table string) ([]map[string]interface{}, erro
 
 	return records, nil
 }
+
+func (client *DBClient) GetColumns(tableName string) (results []string, err error) {
+	rows, err := client.db.Query("DESCRIBE " + tableName)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	var columns []string
+
+	for rows.Next() {
+		var (
+			column     string
+			dataType   string
+			null       string
+			key        string
+			defaultVal sql.NullString
+			extra      string
+		)
+
+		if err := rows.Scan(&column, &dataType, &null, &key, &defaultVal, &extra); err != nil {
+			return nil, err
+		}
+
+		columns = append(columns, column)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return columns, nil
+}
