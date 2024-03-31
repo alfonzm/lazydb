@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/alfonzm/lazydb/internal/config"
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -12,21 +13,13 @@ type Connections struct {
 	list *tview.List
 }
 
-type Connection struct {
-	name string
-	url  string
-}
-
 func NewConnections(
 	app *App,
 	db *db.DBClient,
 ) (*Connections, error) {
-	// TODO: Implement reading connections from a configuration file
-	connConfigurations := []Connection{
-		{
-			name: "foo",
-			url:  "root:root@/foo",
-		},
+	connConfigurations, err := config.GetConnections()
+	if err != nil {
+		return nil, err
 	}
 
 	list := tview.NewList()
@@ -42,8 +35,8 @@ func NewConnections(
 	list.SetTitle("Select a connection")
 	list.ShowSecondaryText(false)
 
-	for _, conn := range connConfigurations {
-		list.AddItem(conn.name, "", 0, connections.selectConnection(conn))
+	for name, conn := range connConfigurations {
+		list.AddItem(name, "", 0, connections.selectConnection(conn.String()))
 	}
 
 	view.SetDirection(tview.FlexRow).
@@ -73,8 +66,8 @@ func (c *Connections) setKeyBindings() {
 	})
 }
 
-func (c *Connections) selectConnection(conn Connection) func() {
+func (c *Connections) selectConnection(url string) func() {
 	return func() {
-		c.app.Connect(conn)
+		c.app.Connect(url)
 	}
 }

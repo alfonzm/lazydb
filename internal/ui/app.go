@@ -41,10 +41,11 @@ func Start() error {
 	return nil
 }
 
-func (app *App) Connect(conn Connection) error {
-	db, err := db.NewDBClient(conn.url)
+func (app *App) Connect(url string) error {
+	db, err := db.NewDBClient(url)
 	if err != nil {
-		return err
+		panic(err)
+		// return err
 	}
 
 	pages := app.pages
