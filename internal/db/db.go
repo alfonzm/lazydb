@@ -173,7 +173,7 @@ func (client *DBClient) UpdateRecordById(
 	for col, val := range record {
 		var value string
 
-		if strings.ToLower(val.(string)) == "now()" {
+		if strings.ToLower(val.(string)) == "now()" || strings.ToLower(val.(string)) == "null" {
 			value = fmt.Sprintf("%v", val)
 		} else {
 			value = fmt.Sprintf("'%v'", val)
