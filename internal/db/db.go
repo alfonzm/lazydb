@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -170,7 +171,15 @@ func (client *DBClient) UpdateRecordById(
 	query := fmt.Sprintf("UPDATE %s SET ", tableName)
 
 	for col, val := range record {
-		query += fmt.Sprintf("%s = '%s', ", col, val.(string))
+		var value string
+
+		if strings.ToLower(val.(string)) == "now()" {
+			value = fmt.Sprintf("%v", val)
+		} else {
+			value = fmt.Sprintf("'%v'", val)
+		}
+
+		query += fmt.Sprintf("%s = %s, ", col, value)
 	}
 
 	query = fmt.Sprintf("%s WHERE id = %s", query[:len(query)-2], id)
