@@ -177,7 +177,7 @@ func (r *Results) setKeyBindings() {
 	// Filter field key bindings
 	r.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			r.clearFilter()
+			r.app.SetFocus(r.table)
 		}
 		return event
 	})

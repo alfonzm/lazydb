@@ -20,5 +20,6 @@
 - [ ] 0 and $ goes to start/end of row
 - [ ] autocomplete for where/SQL editor
 - [ ] saved queries
+- [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
 - [ ] help menu by pressing ?
 - [x] sort columns by highlighting header name and pressing a keybind
