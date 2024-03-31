@@ -185,6 +185,10 @@ func (r *Results) setKeyBindings() {
 }
 
 func (r *Results) clearFilter() {
+	if r.selectedTable == "" {
+		return
+	}
+
 	r.filter.SetText("")
 	r.RenderTable(r.selectedTable, "")
 	r.app.SetFocus(r.table)

@@ -38,7 +38,7 @@ func NewEditor(
 			if err := db.UpdateRecordById(results.selectedTable, id, record); err != nil {
 				// TODO: Show error message in the UI
 				panic(err)
-				return event
+				// return event
 			}
 
 			// refresh the records table

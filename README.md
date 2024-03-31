@@ -12,6 +12,7 @@
 - [x] delete row
 
 ### QOL Improvements
+- [ ] improve UI - similar to lazygit
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] yank cell value

@@ -8,15 +8,46 @@ import (
 
 type App struct {
 	*tview.Application
-	sidebar *Sidebar
-	results *Results
+	pages       *tview.Pages
+	sidebar     *Sidebar
+	results     *Results
+	connections *Connections
+	dbClient    *db.DBClient
 }
 
-func Start(db *db.DBClient) error {
-	app := &App{Application: tview.NewApplication()}
-
+func Start() error {
 	// Setup Pages
 	pages := tview.NewPages()
+
+	app := &App{
+		Application: tview.NewApplication(),
+		pages:       pages,
+	}
+
+	conns, err := NewConnections(app, app.dbClient)
+	if err != nil {
+		return err
+	}
+
+	app.connections = conns
+
+	pages.AddPage("connections", conns.view, true, true)
+	app.setKeyBindings()
+
+	if err := app.SetRoot(pages, true).SetFocus(conns.list).Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *App) Connect(conn Connection) error {
+	db, err := db.NewDBClient(conn.url)
+	if err != nil {
+		return err
+	}
+
+	pages := app.pages
 
 	// Setup results component
 	results, err := NewResults(app.Application, pages, db)
@@ -35,22 +66,19 @@ func Start(db *db.DBClient) error {
 
 	results.editor = editor
 
-	flex := tview.NewFlex().
+	main := tview.NewFlex().
 		AddItem(sidebar.view, 0, 1, false).
 		AddItem(results.view, 0, 6, false)
 
-	pages.AddPage("main", flex, true, true)
+	pages.AddPage("main", main, true, false)
 	pages.AddPage("editor", editor.view, true, false)
-	pages.HidePage("editor")
 
-	app.setKeyBindings()
 	app.sidebar = sidebar
 	app.results = results
 
-	// Run the app
-	if err := app.SetRoot(pages, true).SetFocus(sidebar.list).Run(); err != nil {
-		return err
-	}
+	// Switch to main page
+	pages.SwitchToPage("main")
+	app.SetFocus(sidebar.list)
 
 	return nil
 }
@@ -67,6 +95,8 @@ func (app *App) setKeyBindings() {
 			switch event.Rune() {
 			case 'q':
 				app.Stop()
+			case '0':
+				app.pages.SwitchToPage("connections")
 			}
 		}
 
