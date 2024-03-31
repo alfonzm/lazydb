@@ -8,6 +8,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+type SortColumn struct {
+	Name      string
+	Ascending bool
+}
+
 type Results struct {
 	app           *tview.Application
 	view          *tview.Flex
@@ -17,6 +22,7 @@ type Results struct {
 	db            *db.DBClient
 	editor        *Editor
 	selectedTable string
+	sortColumn    SortColumn
 }
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
@@ -54,7 +60,15 @@ func (r *Results) RenderTable(table string, where string) error {
 		return fmt.Errorf("Error getting columns")
 	}
 
-	dbRecords, err := r.db.GetRecords(table, where)
+	orderBy := ""
+	if r.sortColumn.Name != "" {
+		orderBy = r.sortColumn.Name
+		if !r.sortColumn.Ascending {
+			orderBy = fmt.Sprintf("%s DESC", orderBy)
+		}
+	}
+
+	dbRecords, err := r.db.GetRecords(table, where, orderBy)
 	if err != nil {
 		return fmt.Errorf("Error getting records")
 	}
@@ -63,6 +77,15 @@ func (r *Results) RenderTable(table string, where string) error {
 
 	// set headers from columns
 	for i, column := range dbColumns {
+		// append sort arrow to column name
+		if r.sortColumn.Name == column {
+			if r.sortColumn.Ascending {
+				column = fmt.Sprintf("%s ↑", column)
+			} else {
+				column = fmt.Sprintf("%s ↓", column)
+			}
+		}
+
 		r.table.SetCell(
 			0,
 			i,
@@ -70,7 +93,31 @@ func (r *Results) RenderTable(table string, where string) error {
 		)
 	}
 	r.table.SetSelectable(true, true)
+
 	r.table.SetSelectedFunc(func(row, column int) {
+		// handle sort if headers
+		if row == 0 {
+			columnName := dbColumns[column]
+			if r.sortColumn.Name == columnName {
+				// toggle from ASC, DESC, and none
+				switch r.sortColumn.Ascending {
+				case true:
+					r.sortColumn.Ascending = false
+				case false:
+					r.sortColumn.Name = ""
+				}
+			} else {
+				r.sortColumn.Name = columnName
+				r.sortColumn.Ascending = true
+			}
+
+			r.RenderTable(table, where)
+			r.table.Select(0, column)
+
+			return
+		}
+
+		// else show cell editor
 		r.pages.ShowPage("editor")
 		r.editor.textArea.SetText(r.table.GetCell(row, column).Text, true)
 	})

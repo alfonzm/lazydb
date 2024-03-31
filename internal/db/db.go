@@ -50,11 +50,19 @@ func (client *DBClient) GetTables() ([]string, error) {
 	return tableNames, nil
 }
 
-func (client *DBClient) GetRecords(table string, where string) ([]map[string]interface{}, error) {
+func (client *DBClient) GetRecords(
+	table string,
+	where string,
+	orderBy string,
+) ([]map[string]interface{}, error) {
 	query := fmt.Sprintf("SELECT * FROM %s", table)
 
 	if where != "" {
 		query = fmt.Sprintf("SELECT * FROM %s WHERE %s", table, where)
+	}
+
+	if orderBy != "" {
+		query = fmt.Sprintf("%s ORDER BY %s", query, orderBy)
 	}
 
 	rows, err := client.db.Query(query)
