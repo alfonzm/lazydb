@@ -14,16 +14,17 @@ type SortColumn struct {
 }
 
 type Results struct {
-	app           *tview.Application
-	view          *tview.Flex
-	table         *tview.Table
-	filter        *tview.InputField
-	pages         *tview.Pages
-	db            *db.DBClient
-	editor        *Editor
-	selectedTable string
-	sortColumn    SortColumn
-	dbColumns     []db.Column
+	app                  *tview.Application
+	view                 *tview.Flex
+	table                *tview.Table
+	filter               *tview.InputField
+	pages                *tview.Pages
+	db                   *db.DBClient
+	editor               *Editor
+	selectedTable        string
+	sortColumn           SortColumn
+	dbColumns            []db.Column
+	selectedRowForDelete int
 }
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
@@ -167,7 +168,7 @@ func (r *Results) setKeyBindings() {
 				r.toggleSortForCell()
 			// D will delete the selected row
 			case event.Rune() == 'd':
-				r.deleteRow()
+				r.attemptDeleteRow()
 			}
 		}
 
@@ -222,9 +223,42 @@ func (r *Results) toggleSortForCell() {
 	r.toggleSort("")
 }
 
-func (r *Results) deleteRow() {
-	row, col := r.table.GetSelection()
-	if row == 0 {
+func (r *Results) attemptDeleteRow() {
+	row, _ := r.table.GetSelection()
+
+	// if the selected row is already selected for delete, confirm deletion
+	if r.selectedRowForDelete == row {
+		r.deleteRow(r.selectedRowForDelete)
+		r.selectedRowForDelete = 0
+		return
+	}
+
+	if r.selectedRowForDelete != 0 {
+		// clear the previous selected row for delete
+		for i := 0; i < len(r.dbColumns); i++ {
+			cell := r.table.GetCell(r.selectedRowForDelete, i)
+			cell.SetBackgroundColor(tcell.ColorDefault)
+		}
+	}
+
+	// if the selected row is not already selected for delete, highlight it
+	r.selectedRowForDelete = row
+
+	// set the selected row to red background
+	for i := 0; i < len(r.dbColumns); i++ {
+		cell := r.table.GetCell(row, i)
+		cell.SetBackgroundColor(tcell.ColorRed)
+	}
+}
+
+func (r *Results) deleteRow(row int) {
+	rowToDelete, col := r.table.GetSelection()
+
+	if row > 0 {
+		rowToDelete = row
+	}
+
+	if rowToDelete == 0 {
 		return
 	}
 
@@ -237,7 +271,7 @@ func (r *Results) deleteRow() {
 			continue
 		}
 
-		cell := r.table.GetCell(row, i)
+		cell := r.table.GetCell(rowToDelete, i)
 
 		if cell.Text == "" {
 			continue
@@ -258,5 +292,5 @@ func (r *Results) deleteRow() {
 	}
 
 	r.RenderTable(r.selectedTable, r.filter.GetText())
-	r.table.Select(row, col)
+	r.table.Select(rowToDelete, col)
 }
