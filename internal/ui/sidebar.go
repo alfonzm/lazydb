@@ -115,7 +115,8 @@ func (s *Sidebar) renderTableList(filter string) error {
 }
 
 func (s *Sidebar) renderFilterField() {
-	s.filter.SetLabel("Filter")
+	s.filter.SetLabel("Filter ")
+  s.filter.SetFieldBackgroundColor(tcell.ColorNone)
 	s.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			if s.filter.GetText() != "" {

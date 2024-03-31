@@ -104,7 +104,7 @@ func (r *Results) RenderTable(table string, where string) error {
 
 func (r *Results) renderFilterField() {
 	r.filter.SetLabel("WHERE ").
-		SetFieldBackgroundColor(tcell.ColorBlack).
+		SetFieldBackgroundColor(tcell.ColorNone).
 		SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEnter {
 				where := r.filter.GetText()
