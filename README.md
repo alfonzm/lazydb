@@ -3,12 +3,12 @@
 ## TODO
 
 ### Basic Functionality
-- [ ] home page - read config file for list of databases
-- [ ] home page - connect to a database
-- [ ] select/switch databases
 - [ ] view for columns and indexes
 - [ ] add new row
 - [ ] custom SQL editor
+- [x] home page - read config file for list of databases
+- [x] home page - connect to a database
+- [x] select/switch databases
 - [x] delete row
 
 ### QOL Improvements
