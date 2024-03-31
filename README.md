@@ -7,9 +7,9 @@
 - [ ] home page - connect to a database
 - [ ] select/switch databases
 - [ ] view for columns and indexes
-- [ ] delete row
 - [ ] add new row
 - [ ] custom SQL editor
+- [x] delete row
 
 ### QOL Improvements
 - [ ] tabs similar to Sequel Ace
