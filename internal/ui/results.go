@@ -23,7 +23,7 @@ type Results struct {
 	editor        *Editor
 	selectedTable string
 	sortColumn    SortColumn
-	dbColumns     []string
+	dbColumns     []db.Column
 }
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
@@ -79,13 +79,15 @@ func (r *Results) RenderTable(table string, where string) error {
 	r.table.Clear()
 
 	// set headers from columns
-	for i, columnName := range dbColumns {
+	for i, column := range dbColumns {
+		var columnName string = column.Name
+
 		// append sort arrow to column name
-		if r.sortColumn.Name == columnName {
+		if r.sortColumn.Name == column.Name {
 			if r.sortColumn.Ascending {
-				columnName = fmt.Sprintf("%s ↑", columnName)
+				columnName = fmt.Sprintf("%s ↑", column.Name)
 			} else {
-				columnName = fmt.Sprintf("%s ↓", columnName)
+				columnName = fmt.Sprintf("%s ↓", column.Name)
 			}
 		}
 
@@ -97,10 +99,11 @@ func (r *Results) RenderTable(table string, where string) error {
 	}
 	r.table.SetSelectable(true, true)
 
+	// set cell selection function
 	r.table.SetSelectedFunc(func(row, column int) {
 		// handle sort if headers
 		if row == 0 {
-			r.toggleSort(dbColumns[column])
+			r.toggleSort(dbColumns[column].Name)
 			return
 		}
 
@@ -111,8 +114,8 @@ func (r *Results) RenderTable(table string, where string) error {
 
 	// Iterate over records and fill table
 	for rowIndex, record := range dbRecords {
-		for columnIndex, colName := range dbColumns {
-			recordValue, ok := record[colName]
+		for columnIndex, column := range dbColumns {
+			recordValue, ok := record[column.Name]
 
 			cellString := ""
 
@@ -152,19 +155,20 @@ func (r *Results) renderFilterField() {
 func (r *Results) setKeyBindings() {
 	// Table key bindings
 	r.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// press /
-		if event.Key() == tcell.KeyRune && event.Rune() == '/' {
-			r.app.SetFocus(r.filter)
-		}
-
-		// press escape clears filter
 		if event.Key() == tcell.KeyEscape {
 			r.clearFilter()
 		}
 
-		// press s in any row will cycle sort of current column (from ASC, DESC, none)
-		if event.Key() == tcell.KeyRune && event.Rune() == 's' {
-			r.toggleSort("")
+		if event.Key() == tcell.KeyRune {
+			switch {
+			case event.Rune() == '/':
+				r.app.SetFocus(r.filter)
+			case event.Rune() == 's':
+				r.toggleSortForCell()
+			// D will delete the selected row
+			case event.Rune() == 'd':
+				r.deleteRow()
+			}
 		}
 
 		return event
@@ -189,7 +193,7 @@ func (r *Results) toggleSort(columnName string) {
 	row, col := r.table.GetSelection()
 
 	if columnName == "" {
-		columnName = r.dbColumns[col]
+		columnName = r.dbColumns[col].Name
 	}
 
 	if r.sortColumn.Name == columnName {
@@ -212,4 +216,47 @@ func (r *Results) toggleSort(columnName string) {
 	r.table.Select(row, col)
 
 	return
+}
+
+func (r *Results) toggleSortForCell() {
+	r.toggleSort("")
+}
+
+func (r *Results) deleteRow() {
+	row, col := r.table.GetSelection()
+	if row == 0 {
+		return
+	}
+
+	columns := r.dbColumns
+
+	where := ""
+
+	for i, col := range columns {
+		if col.DataType == "longtext" || col.DataType == "text" || col.DataType == "blob" {
+			continue
+		}
+
+		cell := r.table.GetCell(row, i)
+
+		if cell.Text == "" {
+			continue
+		}
+
+		whereClause := fmt.Sprintf("%s = '%s'", col.Name, cell.Text)
+
+		if i == 0 {
+			where = whereClause
+		} else {
+			where = fmt.Sprintf("%s AND %s", where, whereClause)
+		}
+	}
+
+	if err := r.db.DeleteRecord(r.selectedTable, where); err != nil {
+		fmt.Println("Error deleting record %s", err)
+		return
+	}
+
+	r.RenderTable(r.selectedTable, r.filter.GetText())
+	r.table.Select(row, col)
 }
