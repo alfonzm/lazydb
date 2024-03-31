@@ -253,7 +253,7 @@ func (r *Results) deleteRow() {
 	}
 
 	if err := r.db.DeleteRecord(r.selectedTable, where); err != nil {
-		fmt.Println("Error deleting record %s", err)
+		fmt.Printf("Error deleting record: %v\n", err)
 		return
 	}
 
