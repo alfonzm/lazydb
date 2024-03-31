@@ -36,6 +36,8 @@ func NewEditor(
 			record[colName] = newText
 
 			if err := db.UpdateRecordById(results.selectedTable, id, record); err != nil {
+				// TODO: Show error message in the UI
+				panic(err)
 				return event
 			}
 
