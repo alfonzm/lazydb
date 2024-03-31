@@ -17,8 +17,8 @@
 - [ ] yank cell value
 - [ ] press keybind on a cell, automatically write a WHERE condition for column 
 - [ ] update timestamp fields to NOW() 
-- [ ] sort columns by highlighting header name and pressing a keybind
 - [ ] 0 and $ goes to start/end of row
-- [ ] where/SQL editor autocomplete
+- [ ] autocomplete for where/SQL editor
 - [ ] saved queries
 - [ ] help menu by pressing ?
+- [x] sort columns by highlighting header name and pressing a keybind
