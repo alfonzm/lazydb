@@ -12,6 +12,15 @@ type DBClient struct {
 	db *sql.DB
 }
 
+type Column struct {
+	Name     string
+	DataType string
+	Null     bool
+	Key      string
+	Default  sql.NullString
+	Extra    string
+}
+
 func NewDBClient(connection string) (*DBClient, error) {
 	db, err := sql.Open("mysql", connection)
 	if err != nil {
@@ -65,6 +74,8 @@ func (client *DBClient) GetRecords(
 		query = fmt.Sprintf("%s ORDER BY %s", query, orderBy)
 	}
 
+	query = fmt.Sprintf("%s LIMIT 200", query)
+
 	rows, err := client.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get records from table: %w", err)
@@ -110,14 +121,15 @@ func (client *DBClient) GetRecords(
 	return records, nil
 }
 
-func (client *DBClient) GetColumns(tableName string) (results []string, err error) {
+// return columns with metadata, use Column struct
+func (client *DBClient) GetColumns(tableName string) ([]Column, error) {
 	rows, err := client.db.Query("DESCRIBE " + tableName)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
-	var columns []string
+	var columns []Column
 
 	for rows.Next() {
 		var (
@@ -133,7 +145,14 @@ func (client *DBClient) GetColumns(tableName string) (results []string, err erro
 			return nil, err
 		}
 
-		columns = append(columns, column)
+		columns = append(columns, Column{
+			Name:     column,
+			DataType: dataType,
+			Null:     null == "YES",
+			Key:      key,
+			Default:  defaultVal,
+			Extra:    extra,
+		})
 	}
 
 	if err := rows.Err(); err != nil {
@@ -155,6 +174,21 @@ func (client *DBClient) UpdateRecordById(
 	}
 
 	query = fmt.Sprintf("%s WHERE id = %s", query[:len(query)-2], id)
+
+	_, err := client.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *DBClient) DeleteRecord(tableName string, where string) error {
+	if where == "" {
+		return fmt.Errorf("WHERE clause is required")
+	}
+
+	query := fmt.Sprintf("DELETE FROM %s WHERE %s LIMIT 1", tableName, where)
 
 	_, err := client.db.Exec(query)
 	if err != nil {
