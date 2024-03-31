@@ -23,6 +23,7 @@ type Results struct {
 	editor        *Editor
 	selectedTable string
 	sortColumn    SortColumn
+	dbColumns     []string
 }
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
@@ -60,6 +61,8 @@ func (r *Results) RenderTable(table string, where string) error {
 		return fmt.Errorf("Error getting columns")
 	}
 
+	r.dbColumns = dbColumns
+
 	orderBy := ""
 	if r.sortColumn.Name != "" {
 		orderBy = r.sortColumn.Name
@@ -76,20 +79,20 @@ func (r *Results) RenderTable(table string, where string) error {
 	r.table.Clear()
 
 	// set headers from columns
-	for i, column := range dbColumns {
+	for i, columnName := range dbColumns {
 		// append sort arrow to column name
-		if r.sortColumn.Name == column {
+		if r.sortColumn.Name == columnName {
 			if r.sortColumn.Ascending {
-				column = fmt.Sprintf("%s ↑", column)
+				columnName = fmt.Sprintf("%s ↑", columnName)
 			} else {
-				column = fmt.Sprintf("%s ↓", column)
+				columnName = fmt.Sprintf("%s ↓", columnName)
 			}
 		}
 
 		r.table.SetCell(
 			0,
 			i,
-			tview.NewTableCell(column).SetAlign(tview.AlignCenter).SetSelectable(true),
+			tview.NewTableCell(columnName).SetAlign(tview.AlignCenter).SetSelectable(true),
 		)
 	}
 	r.table.SetSelectable(true, true)
@@ -97,23 +100,7 @@ func (r *Results) RenderTable(table string, where string) error {
 	r.table.SetSelectedFunc(func(row, column int) {
 		// handle sort if headers
 		if row == 0 {
-			columnName := dbColumns[column]
-			if r.sortColumn.Name == columnName {
-				// toggle from ASC, DESC, and none
-				switch r.sortColumn.Ascending {
-				case true:
-					r.sortColumn.Ascending = false
-				case false:
-					r.sortColumn.Name = ""
-				}
-			} else {
-				r.sortColumn.Name = columnName
-				r.sortColumn.Ascending = true
-			}
-
-			r.RenderTable(table, where)
-			r.table.Select(0, column)
-
+			r.toggleSort(dbColumns[column])
 			return
 		}
 
@@ -174,6 +161,12 @@ func (r *Results) setKeyBindings() {
 		if event.Key() == tcell.KeyEscape {
 			r.clearFilter()
 		}
+
+		// press s in any row will cycle sort of current column (from ASC, DESC, none)
+		if event.Key() == tcell.KeyRune && event.Rune() == 's' {
+			r.toggleSort("")
+		}
+
 		return event
 	})
 
@@ -190,4 +183,33 @@ func (r *Results) clearFilter() {
 	r.filter.SetText("")
 	r.RenderTable(r.selectedTable, "")
 	r.app.SetFocus(r.table)
+}
+
+func (r *Results) toggleSort(columnName string) {
+	row, col := r.table.GetSelection()
+
+	if columnName == "" {
+		columnName = r.dbColumns[col]
+	}
+
+	if r.sortColumn.Name == columnName {
+		// toggle from ASC, DESC, and none
+		switch r.sortColumn.Ascending {
+		case true:
+			r.sortColumn.Ascending = false
+		case false:
+			r.sortColumn.Name = ""
+		}
+	} else {
+		r.sortColumn.Name = columnName
+		r.sortColumn.Ascending = true
+	}
+
+	// re-render table
+	r.RenderTable(r.selectedTable, r.filter.GetText())
+
+	// reselect current cell
+	r.table.Select(row, col)
+
+	return
 }
