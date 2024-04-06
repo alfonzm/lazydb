@@ -16,7 +16,8 @@
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] yank cell value
-- [ ] press keybind on a cell, automatically write a WHERE condition for column 
+- [ ] press keybind on a cell (W), automatically write a WHERE condition for column 
+- [ ] ctrl+hjkl to move panels
 - [ ] update timestamp fields to NOW() 
 - [ ] 0 and $ goes to start/end of row
 - [ ] autocomplete for where/SQL editor
