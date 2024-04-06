@@ -28,9 +28,9 @@ func NewEditor(
 			newText := textArea.GetText()
 
 			// update the record in the DB
-			selectedRow, selectedColumn := results.table.GetSelection()
-			id := results.table.GetCell(selectedRow, 0).Text
-			colName := results.table.GetCell(0, selectedColumn).Text
+			selectedRow, selectedColumn := results.resultsTable.GetSelection()
+			id := results.resultsTable.GetCell(selectedRow, 0).Text
+			colName := results.resultsTable.GetCell(0, selectedColumn).Text
 
 			record := make(map[string]interface{})
 			record[colName] = newText
@@ -44,16 +44,16 @@ func NewEditor(
 			// refresh the records table
 			results.RenderTable(results.selectedTable, results.filter.GetText())
 			pages.HidePage("editor")
-			app.SetFocus(results.table)
+			app.SetFocus(results.resultsTable)
 
 			// stay on the same cell
-			results.table.Select(selectedRow, selectedColumn)
+			results.resultsTable.Select(selectedRow, selectedColumn)
 		}
 
 		// on press escape, hide the record editor
 		if event.Key() == tcell.KeyEscape {
 			pages.HidePage("editor")
-			app.SetFocus(results.table)
+			app.SetFocus(results.resultsTable)
 		}
 
 		return event

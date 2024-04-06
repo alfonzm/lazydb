@@ -104,8 +104,8 @@ func (app *App) setKeyBindings() {
 		if event.Key() == tcell.KeyTab {
 			switch app.GetFocus() {
 			case app.sidebar.list:
-				app.SetFocus(app.results.table)
-			case app.results.table:
+				app.results.Focus()
+			case app.results.resultsTable, app.results.columnsTable:
 				app.SetFocus(app.sidebar.list)
 			}
 		}

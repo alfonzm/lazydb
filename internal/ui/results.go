@@ -15,11 +15,12 @@ type SortColumn struct {
 
 type Results struct {
 	app                  *tview.Application
-	view                 *tview.Flex
-	table                *tview.Table
-	filter               *tview.InputField
 	pages                *tview.Pages
 	db                   *db.DBClient
+	view                 *tview.Pages
+	resultsTable         *tview.Table
+	columnsTable         *tview.Table
+	filter               *tview.InputField
 	editor               *Editor
 	selectedTable        string
 	sortColumn           SortColumn
@@ -28,24 +29,41 @@ type Results struct {
 }
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
+	// Setup Results page
 	table := tview.NewTable()
 	filter := tview.NewInputField()
 
-	view := tview.NewFlex()
-	view.SetBorder(true).
+	resultsPage := tview.NewFlex()
+	resultsPage.SetBorder(true).
 		SetTitle("Results").
 		SetBorder(true)
-	view.SetDirection(tview.FlexRow).
+	resultsPage.SetDirection(tview.FlexRow).
 		AddItem(filter, 1, 1, false).
 		AddItem(table, 0, 1, false)
 
+		// Setup Columns page
+	columnsTable := tview.NewTable()
+
+	columnsPage := tview.NewFlex()
+	columnsPage.SetBorder(true).
+		SetTitle("Columns").
+		SetBorder(true)
+	columnsPage.SetDirection(tview.FlexRow)
+	columnsPage.AddItem(columnsTable, 0, 1, false)
+
+	view := tview.NewPages()
+	view.AddPage("results", resultsPage, true, true)
+	view.AddPage("columns", columnsPage, true, false)
+	// view.ShowPage("columns")
+
 	results := &Results{
-		app:    app,
-		table:  table,
-		view:   view,
-		db:     db,
-		filter: filter,
-		pages:  pages,
+		app:          app,
+		resultsTable: table,
+		columnsTable: columnsTable,
+		view:         view,
+		db:           db,
+		filter:       filter,
+		pages:        pages,
 	}
 
 	results.renderFilterField()
@@ -77,7 +95,7 @@ func (r *Results) RenderTable(table string, where string) error {
 		return fmt.Errorf("Error getting records")
 	}
 
-	r.table.Clear()
+	r.resultsTable.Clear()
 
 	// set headers from columns
 	for i, column := range dbColumns {
@@ -92,16 +110,16 @@ func (r *Results) RenderTable(table string, where string) error {
 			}
 		}
 
-		r.table.SetCell(
+		r.resultsTable.SetCell(
 			0,
 			i,
 			tview.NewTableCell(columnName).SetAlign(tview.AlignCenter).SetSelectable(true),
 		)
 	}
-	r.table.SetSelectable(true, true)
+	r.resultsTable.SetSelectable(true, true)
 
 	// set cell selection function
-	r.table.SetSelectedFunc(func(row, column int) {
+	r.resultsTable.SetSelectedFunc(func(row, column int) {
 		// handle sort if headers
 		if row == 0 {
 			r.toggleSort(dbColumns[column].Name)
@@ -110,7 +128,7 @@ func (r *Results) RenderTable(table string, where string) error {
 
 		// else show cell editor
 		r.pages.ShowPage("editor")
-		r.editor.textArea.SetText(r.table.GetCell(row, column).Text, true)
+		r.editor.textArea.SetText(r.resultsTable.GetCell(row, column).Text, true)
 	})
 
 	// Iterate over records and fill table
@@ -129,15 +147,47 @@ func (r *Results) RenderTable(table string, where string) error {
 			}
 
 			cell := tview.NewTableCell(cellString).SetAlign(tview.AlignLeft).SetSelectable(true)
-			r.table.SetCell(rowIndex+1, columnIndex, cell)
+			r.resultsTable.SetCell(rowIndex+1, columnIndex, cell)
 		}
 	}
 
-	r.table.SetFixed(1, 0)
-	r.table.ScrollToBeginning()
-	r.table.Select(0, 0)
+	r.resultsTable.SetFixed(1, 0)
+	r.resultsTable.ScrollToBeginning()
+	r.resultsTable.Select(0, 0)
 
 	return nil
+}
+
+func (r *Results) RenderColumnsTable(table string) error {
+	dbColumns, err := r.db.GetColumns(table)
+	if err != nil {
+		return fmt.Errorf("Error getting columns")
+	}
+
+	r.columnsTable.Clear()
+
+	// set headers from columns
+	for i, column := range dbColumns {
+		r.columnsTable.SetCell(
+			0,
+			i,
+			tview.NewTableCell(column.Name).SetAlign(tview.AlignCenter).SetSelectable(true),
+		)
+	}
+
+	return nil
+}
+
+func (r *Results) Focus() {
+	// focus  the active page content (table or columns)
+	frontPage, _ := r.view.GetFrontPage()
+
+	switch frontPage {
+	case "results":
+		r.app.SetFocus(r.resultsTable)
+	case "columns":
+		r.app.SetFocus(r.columnsTable)
+	}
 }
 
 func (r *Results) renderFilterField() {
@@ -148,14 +198,14 @@ func (r *Results) renderFilterField() {
 				where := r.filter.GetText()
 				r.RenderTable(r.selectedTable, where)
 
-				r.app.SetFocus(r.table)
+				r.app.SetFocus(r.resultsTable)
 			}
 		})
 }
 
 func (r *Results) setKeyBindings() {
 	// Table key bindings
-	r.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	r.resultsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			r.clearFilter()
 		}
@@ -166,9 +216,14 @@ func (r *Results) setKeyBindings() {
 				r.app.SetFocus(r.filter)
 			case event.Rune() == 's':
 				r.toggleSortForCell()
-			// D will delete the selected row
 			case event.Rune() == 'd':
 				r.attemptDeleteRow()
+			case event.Rune() == '1':
+				r.view.ShowPage("columns")
+				r.app.SetFocus(r.columnsTable)
+			case event.Rune() == '2':
+				r.view.ShowPage("results")
+				r.app.SetFocus(r.resultsTable)
 			}
 		}
 
@@ -178,7 +233,7 @@ func (r *Results) setKeyBindings() {
 	// Filter field key bindings
 	r.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			r.app.SetFocus(r.table)
+			r.app.SetFocus(r.resultsTable)
 		}
 		return event
 	})
@@ -191,11 +246,11 @@ func (r *Results) clearFilter() {
 
 	r.filter.SetText("")
 	r.RenderTable(r.selectedTable, "")
-	r.app.SetFocus(r.table)
+	r.app.SetFocus(r.resultsTable)
 }
 
 func (r *Results) toggleSort(columnName string) {
-	row, col := r.table.GetSelection()
+	row, col := r.resultsTable.GetSelection()
 
 	if columnName == "" {
 		columnName = r.dbColumns[col].Name
@@ -218,7 +273,7 @@ func (r *Results) toggleSort(columnName string) {
 	r.RenderTable(r.selectedTable, r.filter.GetText())
 
 	// reselect current cell
-	r.table.Select(row, col)
+	r.resultsTable.Select(row, col)
 
 	return
 }
@@ -228,7 +283,7 @@ func (r *Results) toggleSortForCell() {
 }
 
 func (r *Results) attemptDeleteRow() {
-	row, _ := r.table.GetSelection()
+	row, _ := r.resultsTable.GetSelection()
 
 	// if the selected row is already selected for delete, confirm deletion
 	if r.selectedRowForDelete == row {
@@ -240,7 +295,7 @@ func (r *Results) attemptDeleteRow() {
 	if r.selectedRowForDelete != 0 {
 		// clear the previous selected row for delete
 		for i := 0; i < len(r.dbColumns); i++ {
-			cell := r.table.GetCell(r.selectedRowForDelete, i)
+			cell := r.resultsTable.GetCell(r.selectedRowForDelete, i)
 			cell.SetBackgroundColor(tcell.ColorDefault)
 		}
 	}
@@ -250,13 +305,13 @@ func (r *Results) attemptDeleteRow() {
 
 	// set the selected row to red background
 	for i := 0; i < len(r.dbColumns); i++ {
-		cell := r.table.GetCell(row, i)
+		cell := r.resultsTable.GetCell(row, i)
 		cell.SetBackgroundColor(tcell.ColorRed)
 	}
 }
 
 func (r *Results) deleteRow(row int) {
-	rowToDelete, col := r.table.GetSelection()
+	rowToDelete, col := r.resultsTable.GetSelection()
 
 	if row > 0 {
 		rowToDelete = row
@@ -275,7 +330,7 @@ func (r *Results) deleteRow(row int) {
 			continue
 		}
 
-		cell := r.table.GetCell(rowToDelete, i)
+		cell := r.resultsTable.GetCell(rowToDelete, i)
 
 		if cell.Text == "" {
 			continue
@@ -296,5 +351,5 @@ func (r *Results) deleteRow(row int) {
 	}
 
 	r.RenderTable(r.selectedTable, r.filter.GetText())
-	r.table.Select(rowToDelete, col)
+	r.resultsTable.Select(rowToDelete, col)
 }
