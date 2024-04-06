@@ -17,7 +17,6 @@
 - [ ] improve UI colors - similar to lazygit
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
-- [ ] yank cell value
 - [ ] press keybind on a cell (W), automatically write a WHERE condition for column 
 - [ ] ctrl+hjkl to move panels
 - [ ] update timestamp fields to NOW() 
@@ -26,4 +25,5 @@
 - [ ] saved queries
 - [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
 - [ ] help menu by pressing ?
+- [x] yank cell value
 - [x] sort columns by highlighting header name and pressing a keybind
