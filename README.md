@@ -3,10 +3,10 @@
 ## TODO
 
 ### Basic Functionality
-- [ ] view for columns and indexes
 - [ ] add new row
 - [ ] custom SQL editor
 - [ ] support for other DB drivers (refactor to use interfaces)
+- [x ] view for columns and indexes
 - [x] home page - read config file for list of databases
 - [x] home page - connect to a database
 - [x] select/switch databases
