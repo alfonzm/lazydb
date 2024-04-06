@@ -105,7 +105,11 @@ func (app *App) setKeyBindings() {
 			switch app.GetFocus() {
 			case app.sidebar.list:
 				app.results.Focus()
-			case app.results.resultsTable, app.results.columnsTable:
+			case app.results.resultsTable:
+				app.SetFocus(app.sidebar.list)
+			case app.results.columnsTable:
+				app.SetFocus(app.results.indexesTable)
+			case app.results.indexesTable:
 				app.SetFocus(app.sidebar.list)
 			}
 		}

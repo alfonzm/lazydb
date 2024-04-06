@@ -47,11 +47,10 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	indexesTable := tview.NewTable()
 
 	columnsPage := tview.NewFlex()
-	columnsPage.SetBorder(true).
-		SetTitle("Columns").
-		SetBorder(true)
+	columnsPage.SetBorder(false).
+		SetTitle("Columns")
 	columnsPage.SetDirection(tview.FlexRow)
-	columnsPage.AddItem(columnsTable, 0, 1, false)
+	columnsPage.AddItem(columnsTable, 0, 4, false)
 	columnsPage.AddItem(indexesTable, 0, 1, false)
 
 	view := tview.NewPages()
@@ -75,7 +74,9 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	return results, nil
 }
 
-func (r *Results) RenderResultsTable(table string, where string) error {
+// RenderTable renders the table with the given name and optional where clause
+// It will also render the columns and indexes tables
+func (r *Results) RenderTable(table string, where string) error {
 	r.selectedTable = table
 
 	dbColumns, err := r.db.GetColumns(table)
@@ -220,6 +221,7 @@ func (r *Results) RenderColumnsTable(table string, dbColumns []db.Column) error 
 		)
 	}
 
+	r.columnsTable.SetBorder(true)
 	r.columnsTable.SetSelectable(true, true)
 	r.columnsTable.SetFixed(1, 0)
 	r.columnsTable.ScrollToBeginning()
@@ -249,6 +251,7 @@ func (r *Results) RenderIndexesTable(table string) error {
 		}
 	}
 
+	r.indexesTable.SetBorder(true)
 	r.indexesTable.SetSelectable(true, true)
 	r.indexesTable.SetFixed(1, 0)
 	r.indexesTable.ScrollToBeginning()
@@ -274,7 +277,7 @@ func (r *Results) renderFilterField() {
 		SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEnter {
 				where := r.filter.GetText()
-				r.RenderResultsTable(r.selectedTable, where)
+				r.RenderTable(r.selectedTable, where)
 
 				r.app.SetFocus(r.resultsTable)
 			}
@@ -332,7 +335,7 @@ func (r *Results) clearFilter() {
 	}
 
 	r.filter.SetText("")
-	r.RenderResultsTable(r.selectedTable, "")
+	r.RenderTable(r.selectedTable, "")
 	r.app.SetFocus(r.resultsTable)
 }
 
@@ -357,7 +360,7 @@ func (r *Results) toggleSort(columnName string) {
 	}
 
 	// re-render table
-	r.RenderResultsTable(r.selectedTable, r.filter.GetText())
+	r.RenderTable(r.selectedTable, r.filter.GetText())
 
 	// reselect current cell
 	r.resultsTable.Select(row, col)
@@ -437,6 +440,6 @@ func (r *Results) deleteRow(row int) {
 		return
 	}
 
-	r.RenderResultsTable(r.selectedTable, r.filter.GetText())
+	r.RenderTable(r.selectedTable, r.filter.GetText())
 	r.resultsTable.Select(rowToDelete, col)
 }
