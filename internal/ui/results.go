@@ -20,6 +20,7 @@ type Results struct {
 	view                 *tview.Pages
 	resultsTable         *tview.Table
 	columnsTable         *tview.Table
+	indexesTable         *tview.Table
 	filter               *tview.InputField
 	editor               *Editor
 	selectedTable        string
@@ -43,6 +44,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 
 		// Setup Columns page
 	columnsTable := tview.NewTable()
+	indexesTable := tview.NewTable()
 
 	columnsPage := tview.NewFlex()
 	columnsPage.SetBorder(true).
@@ -50,6 +52,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		SetBorder(true)
 	columnsPage.SetDirection(tview.FlexRow)
 	columnsPage.AddItem(columnsTable, 0, 1, false)
+	columnsPage.AddItem(indexesTable, 0, 1, false)
 
 	view := tview.NewPages()
 	view.AddPage("results", resultsPage, true, true)
@@ -59,6 +62,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		app:          app,
 		resultsTable: resultsTable,
 		columnsTable: columnsTable,
+		indexesTable: indexesTable,
 		view:         view,
 		db:           db,
 		filter:       filter,
@@ -220,6 +224,34 @@ func (r *Results) RenderColumnsTable(table string, dbColumns []db.Column) error 
 	r.columnsTable.SetFixed(1, 0)
 	r.columnsTable.ScrollToBeginning()
 	r.columnsTable.Select(0, 0)
+
+	r.RenderIndexesTable(table)
+
+	return nil
+}
+
+func (r *Results) RenderIndexesTable(table string) error {
+	indexes, err := r.db.GetIndexes(table)
+	if err != nil {
+		return fmt.Errorf("Error getting indexes")
+	}
+
+	r.indexesTable.Clear()
+
+	// render indexes
+	for i, index := range indexes {
+		for j, indexColumn := range index {
+			r.indexesTable.SetCell(
+				i,
+				j,
+				tview.NewTableCell(indexColumn).SetAlign(tview.AlignLeft).SetSelectable(true),
+			)
+		}
+	}
+
+	r.indexesTable.SetSelectable(true, true)
+	r.indexesTable.SetFixed(1, 0)
+	r.indexesTable.ScrollToBeginning()
 
 	return nil
 }

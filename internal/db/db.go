@@ -163,6 +163,47 @@ func (client *DBClient) GetColumns(tableName string) ([]Column, error) {
 	return columns, nil
 }
 
+// get indexes
+func (client *DBClient) GetIndexes(tableName string) ([][]string, error) {
+	rows, err := client.db.Query("SHOW INDEXES FROM " + tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var indexes [][]string
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	indexes = append(indexes, columns)
+
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+
+		for i := range columns {
+			values[i] = new(sql.RawBytes)
+		}
+
+		if err := rows.Scan(values...); err != nil {
+			return nil, err
+		}
+
+		var index []string
+
+		for _, val := range values {
+			index = append(index, string(*val.(*sql.RawBytes)))
+		}
+
+		indexes = append(indexes, index)
+	}
+
+	return indexes, nil
+}
+
 func (client *DBClient) UpdateRecordById(
 	tableName string,
 	id string,
