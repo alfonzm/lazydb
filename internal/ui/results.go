@@ -30,7 +30,7 @@ type Results struct {
 
 func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
 	// Setup Results page
-	table := tview.NewTable()
+	resultsTable := tview.NewTable()
 	filter := tview.NewInputField()
 
 	resultsPage := tview.NewFlex()
@@ -39,7 +39,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		SetBorder(true)
 	resultsPage.SetDirection(tview.FlexRow).
 		AddItem(filter, 1, 1, false).
-		AddItem(table, 0, 1, false)
+		AddItem(resultsTable, 0, 1, false)
 
 		// Setup Columns page
 	columnsTable := tview.NewTable()
@@ -54,11 +54,10 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	view := tview.NewPages()
 	view.AddPage("results", resultsPage, true, true)
 	view.AddPage("columns", columnsPage, true, false)
-	// view.ShowPage("columns")
 
 	results := &Results{
 		app:          app,
-		resultsTable: table,
+		resultsTable: resultsTable,
 		columnsTable: columnsTable,
 		view:         view,
 		db:           db,
@@ -127,7 +126,7 @@ func (r *Results) RenderResultsTable(table string, where string) error {
 		}
 
 		// else show cell editor
-		r.pages.ShowPage("editor")
+		r.pages.SwitchToPage("editor")
 		r.editor.textArea.SetText(r.resultsTable.GetCell(row, column).Text, true)
 	})
 
@@ -155,25 +154,72 @@ func (r *Results) RenderResultsTable(table string, where string) error {
 	r.resultsTable.ScrollToBeginning()
 	r.resultsTable.Select(0, 0)
 
+	r.RenderColumnsTable(table, dbColumns)
+
 	return nil
 }
 
-func (r *Results) RenderColumnsTable(table string) error {
-	dbColumns, err := r.db.GetColumns(table)
-	if err != nil {
-		return fmt.Errorf("Error getting columns")
-	}
-
+func (r *Results) RenderColumnsTable(table string, dbColumns []db.Column) error {
 	r.columnsTable.Clear()
 
+	columnMetaColumns := []string{"Field", "Type", "Null", "Key", "Default", "Extra"}
+
 	// set headers from columns
-	for i, column := range dbColumns {
+	for i, column := range columnMetaColumns {
 		r.columnsTable.SetCell(
 			0,
 			i,
-			tview.NewTableCell(column.Name).SetAlign(tview.AlignCenter).SetSelectable(true),
+			tview.NewTableCell(column).SetAlign(tview.AlignCenter).SetSelectable(true),
 		)
 	}
+
+	// Iterate over records and fill table
+	for i, col := range dbColumns {
+		defaultValue := ""
+		if col.Default.Valid {
+			defaultValue = col.Default.String
+		} else if col.Null {
+			defaultValue = "NULL"
+		}
+
+		r.columnsTable.SetCell(
+			i+1,
+			0,
+			tview.NewTableCell(col.Name).SetAlign(tview.AlignLeft).SetSelectable(true),
+		)
+		r.columnsTable.SetCell(
+			i+1,
+			1,
+			tview.NewTableCell(col.DataType).SetAlign(tview.AlignLeft).SetSelectable(true),
+		)
+		r.columnsTable.SetCell(
+			i+1,
+			2,
+			tview.NewTableCell(fmt.Sprintf("%t", col.Null)).
+				SetAlign(tview.AlignLeft).
+				SetSelectable(true),
+		)
+		r.columnsTable.SetCell(
+			i+1,
+			3,
+			tview.NewTableCell(col.Key).SetAlign(tview.AlignLeft).SetSelectable(true),
+		)
+		r.columnsTable.SetCell(
+			i+1,
+			4,
+			tview.NewTableCell(defaultValue).SetAlign(tview.AlignLeft).SetSelectable(true),
+		)
+		r.columnsTable.SetCell(
+			i+1,
+			5,
+			tview.NewTableCell(col.Extra).SetAlign(tview.AlignLeft).SetSelectable(true),
+		)
+	}
+
+	r.columnsTable.SetSelectable(true, true)
+	r.columnsTable.SetFixed(1, 0)
+	r.columnsTable.ScrollToBeginning()
+	r.columnsTable.Select(0, 0)
 
 	return nil
 }
@@ -204,7 +250,7 @@ func (r *Results) renderFilterField() {
 }
 
 func (r *Results) setKeyBindings() {
-	// Table key bindings
+	// Resutls Table key bindings
 	r.resultsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			r.clearFilter()
@@ -219,10 +265,19 @@ func (r *Results) setKeyBindings() {
 			case event.Rune() == 'd':
 				r.attemptDeleteRow()
 			case event.Rune() == '1':
-				r.view.ShowPage("columns")
+				r.view.SwitchToPage("columns")
 				r.app.SetFocus(r.columnsTable)
-			case event.Rune() == '2':
-				r.view.ShowPage("results")
+			}
+		}
+
+		return event
+	})
+
+	r.columnsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune {
+			switch event.Rune() {
+			case '2':
+				r.view.SwitchToPage("results")
 				r.app.SetFocus(r.resultsTable)
 			}
 		}
