@@ -42,7 +42,7 @@ func NewEditor(
 			}
 
 			// refresh the records table
-			results.RenderTable(results.selectedTable, results.filter.GetText())
+			results.RenderResultsTable(results.selectedTable, results.filter.GetText())
 			pages.HidePage("editor")
 			app.SetFocus(results.resultsTable)
 

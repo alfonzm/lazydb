@@ -106,7 +106,7 @@ func (s *Sidebar) renderTableList(filter string) error {
 		}
 
 		s.list.AddItem(table, "", 0, func() {
-			s.results.RenderTable(table, "")
+			s.results.RenderResultsTable(table, "")
 			s.app.SetFocus(s.results.resultsTable)
 		})
 	}

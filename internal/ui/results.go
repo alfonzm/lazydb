@@ -72,7 +72,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	return results, nil
 }
 
-func (r *Results) RenderTable(table string, where string) error {
+func (r *Results) RenderResultsTable(table string, where string) error {
 	r.selectedTable = table
 
 	dbColumns, err := r.db.GetColumns(table)
@@ -196,7 +196,7 @@ func (r *Results) renderFilterField() {
 		SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEnter {
 				where := r.filter.GetText()
-				r.RenderTable(r.selectedTable, where)
+				r.RenderResultsTable(r.selectedTable, where)
 
 				r.app.SetFocus(r.resultsTable)
 			}
@@ -245,7 +245,7 @@ func (r *Results) clearFilter() {
 	}
 
 	r.filter.SetText("")
-	r.RenderTable(r.selectedTable, "")
+	r.RenderResultsTable(r.selectedTable, "")
 	r.app.SetFocus(r.resultsTable)
 }
 
@@ -270,7 +270,7 @@ func (r *Results) toggleSort(columnName string) {
 	}
 
 	// re-render table
-	r.RenderTable(r.selectedTable, r.filter.GetText())
+	r.RenderResultsTable(r.selectedTable, r.filter.GetText())
 
 	// reselect current cell
 	r.resultsTable.Select(row, col)
@@ -350,6 +350,6 @@ func (r *Results) deleteRow(row int) {
 		return
 	}
 
-	r.RenderTable(r.selectedTable, r.filter.GetText())
+	r.RenderResultsTable(r.selectedTable, r.filter.GetText())
 	r.resultsTable.Select(rowToDelete, col)
 }
