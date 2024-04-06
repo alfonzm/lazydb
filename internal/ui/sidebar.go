@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/alfonzm/lazydb/internal/db"
@@ -99,7 +100,7 @@ func (s *Sidebar) renderTableList(filter string) error {
 	s.list.ShowSecondaryText(false).SetHighlightFullLine(true).
 		SetTitle("Tables")
 
-		// filter by if table name contains filter
+	sort.Strings(tableNames)
 	for _, table := range tableNames {
 		if filter != "" && !strings.Contains(strings.ToLower(table), strings.ToLower(filter)) {
 			continue
