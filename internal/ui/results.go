@@ -2,8 +2,10 @@ package ui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/alfonzm/lazydb/internal/db"
+	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -302,6 +304,27 @@ func (r *Results) setKeyBindings() {
 			case event.Rune() == '1':
 				r.view.SwitchToPage("columns")
 				r.app.SetFocus(r.columnsTable)
+			case event.Rune() == 'y':
+				// Yank the cell text to clipboard
+				row, col := r.resultsTable.GetSelection()
+				cell := r.resultsTable.GetCell(row, col)
+				clipboard.WriteAll(cell.Text)
+
+				// On yank, Highlight the cell for a short time
+				oldBgColor := cell.BackgroundColor
+				cell.SetBackgroundColor(tcell.ColorGreen)
+				r.resultsTable.SetSelectedStyle(
+					tcell.StyleDefault.Background(tcell.ColorYellow).Foreground(tcell.ColorBlack),
+				)
+
+				time.AfterFunc(75*time.Millisecond, func() {
+					cell.SetBackgroundColor(oldBgColor)
+					r.resultsTable.SetSelectedStyle(
+						tcell.StyleDefault.Background(tcell.ColorWhite).
+							Foreground(tcell.ColorBlack),
+					)
+					r.app.Draw()
+				})
 			}
 		}
 
