@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"sort"
+
 	"github.com/alfonzm/lazydb/internal/config"
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
@@ -35,8 +37,14 @@ func NewConnections(
 	list.SetTitle("Select a connection")
 	list.ShowSecondaryText(false)
 
-	for name, conn := range connConfigurations {
-		list.AddItem(name, "", 0, connections.selectConnection(conn.String()))
+	var connectionNames []string
+	for name := range connConfigurations {
+		connectionNames = append(connectionNames, name)
+	}
+	sort.Strings(connectionNames)
+
+	for _, conn := range connectionNames {
+		list.AddItem(conn, "", 0, connections.selectConnection(conn))
 	}
 
 	view.SetDirection(tview.FlexRow).
