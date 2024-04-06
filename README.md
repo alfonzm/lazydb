@@ -6,6 +6,7 @@
 - [ ] view for columns and indexes
 - [ ] add new row
 - [ ] custom SQL editor
+- [ ] support for other DB drivers (refactor to use interfaces)
 - [x] home page - read config file for list of databases
 - [x] home page - connect to a database
 - [x] select/switch databases
@@ -13,6 +14,7 @@
 
 ### QOL Improvements
 - [ ] improve UI - similar to lazygit
+- [ ] fix UI colors
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] yank cell value
