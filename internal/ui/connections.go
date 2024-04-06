@@ -37,14 +37,15 @@ func NewConnections(
 	list.SetTitle("Select a connection")
 	list.ShowSecondaryText(false)
 
-	var connectionNames []string
-	for name := range connConfigurations {
-		connectionNames = append(connectionNames, name)
+	var connNames []string
+	for k := range connConfigurations {
+		connNames = append(connNames, k)
 	}
-	sort.Strings(connectionNames)
+	sort.Strings(connNames)
 
-	for _, conn := range connectionNames {
-		list.AddItem(conn, "", 0, connections.selectConnection(conn))
+	for _, index := range connNames {
+		conn := connConfigurations[index]
+		list.AddItem(conn.Database, "", 0, connections.selectConnection(conn.String()))
 	}
 
 	view.SetDirection(tview.FlexRow).
