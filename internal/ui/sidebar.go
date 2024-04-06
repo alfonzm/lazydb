@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/alfonzm/lazydb/internal/db"
@@ -100,7 +99,6 @@ func (s *Sidebar) renderTableList(filter string) error {
 	s.list.ShowSecondaryText(false).SetHighlightFullLine(true).
 		SetTitle("Tables")
 
-	sort.Strings(tableNames)
 	for _, table := range tableNames {
 		if filter != "" && !strings.Contains(strings.ToLower(table), strings.ToLower(filter)) {
 			continue
@@ -119,19 +117,37 @@ func (s *Sidebar) renderTableList(filter string) error {
 func (s *Sidebar) renderFilterField() {
 	s.filter.SetLabel("Filter ")
 	s.filter.SetFieldBackgroundColor(tcell.ColorNone)
+
 	s.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		currentText := s.filter.GetText()
 		if event.Key() == tcell.KeyEscape {
-			if s.filter.GetText() != "" {
-				s.filter.SetText("")
-				s.renderTableList("")
+			if currentText != "" {
+				s.renderTableList(currentText)
 				s.app.SetFocus(s.list)
 			}
+			return event
 		}
+
+		// Remove the last character if present
+		if event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			if len(currentText) > 0 {
+				currentText = currentText[:len(currentText)-1]
+			}
+		}
+
+		// Append the current rune to the filter text for rendering
+		if event.Key() == tcell.KeyRune {
+			currentText += string(event.Rune())
+		}
+
+		// Render the table list and filter in real time
+		s.renderTableList(currentText)
+
 		return event
 	})
+
 	s.filter.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
-			s.renderTableList(s.filter.GetText())
 			s.app.SetFocus(s.list)
 		}
 	})
