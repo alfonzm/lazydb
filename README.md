@@ -13,8 +13,8 @@
 - [x] delete row
 
 ### QOL Improvements
-- [ ] improve UI - similar to lazygit
-- [ ] fix UI colors
+- [ ] easy way to show/hide columns
+- [ ] improve UI colors - similar to lazygit
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] yank cell value
