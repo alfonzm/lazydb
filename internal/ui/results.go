@@ -50,7 +50,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		AddItem(filter, 1, 1, false).
 		AddItem(resultsTable, 0, 1, false)
 
-		// Setup Columns page
+	// Setup Columns page
 	columnsTable := tview.NewTable()
 	indexesTable := tview.NewTable()
 
@@ -268,7 +268,7 @@ func (r *Results) RenderIndexesTable(table string) error {
 }
 
 func (r *Results) renderFilterField() {
-  // Handle autocomplete
+	// Handle autocomplete
 	r.filter.SetAutocompleteFunc(func(currentText string) (entries []string) {
 		if len(currentText) == 0 {
 			return
