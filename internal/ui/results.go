@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/alfonzm/lazydb/internal/db"
@@ -35,6 +36,11 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	// Setup Results page
 	resultsTable := tview.NewTable()
 	filter := tview.NewInputField()
+	filter.SetAutocompleteStyles(
+		tcell.Color237,
+		tcell.StyleDefault,
+		tcell.StyleDefault.Foreground(tcell.Color237).Background(tcell.Color246),
+	)
 
 	resultsPage := tview.NewFlex()
 	resultsPage.SetBorder(true).
@@ -261,19 +267,32 @@ func (r *Results) RenderIndexesTable(table string) error {
 	return nil
 }
 
-func (r *Results) Focus() {
-	// focus  the active page content (table or columns)
-	frontPage, _ := r.view.GetFrontPage()
-
-	switch frontPage {
-	case "results":
-		r.app.SetFocus(r.resultsTable)
-	case "columns":
-		r.app.SetFocus(r.columnsTable)
-	}
-}
-
 func (r *Results) renderFilterField() {
+  // Handle autocomplete
+	r.filter.SetAutocompleteFunc(func(currentText string) (entries []string) {
+		if len(currentText) == 0 {
+			return
+		}
+
+		// prepare suggestions
+		suggestions := make([]string, len(r.dbColumns))
+		for i, col := range r.dbColumns {
+			suggestions[i] = col.Name
+		}
+
+		for _, suggestion := range suggestions {
+			if strings.Contains(strings.ToLower(suggestion), strings.ToLower(currentText)) {
+				entries = append(entries, suggestion)
+			}
+		}
+
+		if len(entries) == 0 {
+			entries = nil
+		}
+
+		return
+	})
+
 	r.filter.SetLabel("WHERE ").
 		SetFieldBackgroundColor(tcell.ColorNone).
 		SetDoneFunc(func(key tcell.Key) {
@@ -284,6 +303,18 @@ func (r *Results) renderFilterField() {
 				r.app.SetFocus(r.resultsTable)
 			}
 		})
+}
+
+func (r *Results) Focus() {
+	// focus  the active page content (table or columns)
+	frontPage, _ := r.view.GetFrontPage()
+
+	switch frontPage {
+	case "results":
+		r.app.SetFocus(r.resultsTable)
+	case "columns":
+		r.app.SetFocus(r.columnsTable)
+	}
 }
 
 func (r *Results) setKeyBindings() {
@@ -348,6 +379,7 @@ func (r *Results) setKeyBindings() {
 		if event.Key() == tcell.KeyEscape {
 			r.app.SetFocus(r.resultsTable)
 		}
+
 		return event
 	})
 }
