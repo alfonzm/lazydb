@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -274,14 +275,23 @@ func (r *Results) renderFilterField() {
 			return
 		}
 
-		// prepare suggestions
+		// Split the currentText into words and use the last word for suggestions
+		words := strings.Fields(currentText)
+		lastWord := words[len(words)-1]
+
+		// Remove special characters from the last word using regex
+		regex := regexp.MustCompile("[^a-zA-Z0-9]+")
+		lastWord = regex.ReplaceAllString(lastWord, "")
+
+		// Prepare suggestions
 		suggestions := make([]string, len(r.dbColumns))
 		for i, col := range r.dbColumns {
-			suggestions[i] = col.Name
+			// Add padding so it looks nice on the UI
+			suggestions[i] = " " + col.Name + " "
 		}
 
 		for _, suggestion := range suggestions {
-			if strings.Contains(strings.ToLower(suggestion), strings.ToLower(currentText)) {
+			if strings.Contains(strings.ToLower(suggestion), strings.ToLower(lastWord)) {
 				entries = append(entries, suggestion)
 			}
 		}
@@ -290,7 +300,19 @@ func (r *Results) renderFilterField() {
 			entries = nil
 		}
 
-		return
+		return entries
+	})
+
+	r.filter.SetAutocompletedFunc(func(selectedSuggestion string, index int, source int) bool {
+		if source != tview.AutocompletedEnter {
+			return false
+		}
+
+		newText := replaceLastWordWithSuggestion(r.filter.GetText(), selectedSuggestion)
+		r.filter.SetText(newText)
+
+		// Return true to indicate the autocompleted text has been handled
+		return true
 	})
 
 	r.filter.SetLabel("WHERE ").
@@ -497,4 +519,35 @@ func (r *Results) deleteRow(row int) {
 
 	r.RenderTable(r.selectedTable, r.filter.GetText())
 	r.resultsTable.Select(rowToDelete, col)
+}
+
+func replaceLastWordWithSuggestion(originalText, suggestion string) string {
+	// Handle select autocomplete suggestion:
+	// If the user selects a suggestion, replace the last word
+	// in the filter text with the selected suggestion.
+	splitRegex := regexp.MustCompile(`(\W)|(\w+)`)
+	words := splitRegex.FindAllString(originalText, -1)
+
+	// filter out empty strings
+	words = words[:0]
+	for _, word := range splitRegex.FindAllString(originalText, -1) {
+		word = strings.TrimSpace(word)
+		if word != "" {
+			words = append(words, word)
+		}
+	}
+
+	// Trim whitespace from the selected suggestion
+	suggestion = strings.TrimSpace(suggestion)
+
+	if len(words) == 0 {
+		return suggestion
+	} else {
+		// Replace the last word with the selected suggestion
+		words[len(words)-1] = suggestion
+
+		// Join the words back into a string and set it as the new text
+		newText := strings.Join(words, " ")
+		return newText
+	}
 }
