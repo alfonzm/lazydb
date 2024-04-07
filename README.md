@@ -6,6 +6,7 @@
 - [ ] add new row
 - [ ] custom SQL editor
 - [ ] support for other DB drivers (refactor to use interfaces)
+- [ ] show error modals for failed queries and other user-facing errors
 - [x] view for columns and indexes
 - [x] home page - read config file for list of databases
 - [x] home page - connect to a database
