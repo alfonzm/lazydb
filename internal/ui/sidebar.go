@@ -115,13 +115,16 @@ func (s *Sidebar) renderTableList(filter string) error {
 		}
 
 		s.list.AddItem(table, "", 0, func() {
-			// on select table from table list
-			s.results.RenderTable(table, "")
-			s.results.Focus()
+			s.selectTable(table)
 		})
 	}
 
 	return nil
+}
+
+func (s *Sidebar) selectTable(table string) {
+	s.results.RenderTable(table, "")
+	s.results.Focus()
 }
 
 func (s *Sidebar) renderFilterField() {
@@ -179,6 +182,15 @@ func (s *Sidebar) renderFilterField() {
 
 	s.filter.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
+			currentItem := s.list.GetCurrentItem()
+
+			// if current item is > 0, select the item
+			if currentItem > 0 {
+				tableName, _ := s.list.GetItemText(currentItem)
+				s.selectTable(tableName)
+				return
+			}
+
 			s.app.SetFocus(s.list)
 		}
 	})

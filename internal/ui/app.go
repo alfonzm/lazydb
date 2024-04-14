@@ -92,15 +92,6 @@ func (app *App) setKeyBindings() {
 			return event
 		}
 
-		if event.Key() == tcell.KeyRune {
-			switch event.Rune() {
-			case 'q':
-				app.Stop()
-			case '0':
-				app.pages.SwitchToPage("connections")
-			}
-		}
-
 		if event.Key() == tcell.KeyTab {
 			switch app.GetFocus() {
 			case app.sidebar.list:
@@ -112,12 +103,28 @@ func (app *App) setKeyBindings() {
 			case app.results.indexesTable:
 				app.SetFocus(app.sidebar.list)
 			}
+			return event
 		}
 
-		// if ctrl+f is pressed, focus on the filter input
-		if event.Key() == tcell.KeyCtrlF {
+		if event.Key() == tcell.KeyRune {
+			switch event.Rune() {
+			case 'q':
+				app.Stop()
+			case '0':
+				app.pages.SwitchToPage("connections")
+			}
+
+			return event
+		}
+
+		switch event.Key() {
+		case tcell.KeyCtrlF:
 			app.SetFocus(app.sidebar.list)
 			app.SetFocus(app.sidebar.filter)
+		case tcell.KeyCtrlR:
+			app.results.Focus()
+		case tcell.KeyCtrlT:
+			app.SetFocus(app.sidebar.list)
 		}
 
 		return event
