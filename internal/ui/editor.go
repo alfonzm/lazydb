@@ -23,8 +23,8 @@ func NewEditor(
 	textArea.SetBorder(true).SetTitle("Edit field")
 
 	textArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// On Ctrl+Enter, run the query
-		if event.Rune() == 13 {
+		// On Enter, run the update query
+		if event.Key() == tcell.KeyEnter {
 			newText := textArea.GetText()
 
 			// update the record in the DB

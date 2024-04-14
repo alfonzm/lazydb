@@ -92,6 +92,11 @@ func (app *App) setKeyBindings() {
 			return event
 		}
 
+		// If the focus is on Editor, early return
+		if app.GetFocus() == app.results.editor.textArea {
+			return event
+		}
+
 		if event.Key() == tcell.KeyTab {
 			switch app.GetFocus() {
 			case app.sidebar.list:
