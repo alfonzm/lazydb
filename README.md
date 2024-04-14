@@ -3,6 +3,7 @@
 ## TODO
 
 ### Basic Functionality
+- [ ] row value viewer (broken atm)
 - [ ] add new row
 - [ ] custom SQL editor
 - [ ] support for other DB drivers (refactor to use interfaces)
