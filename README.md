@@ -22,10 +22,10 @@
 - [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] keyboard shorcuts
-  - [ ] ctrl+f from anywhere goes to table filter
-  - [ ] press keybind on a cell (W), automatically write a WHERE condition for column 
   - [ ] ctrl+hjkl to move panels (in addtn to tab)
   - [ ] 0 and $ goes to start/end of row
+  - [x] ctrl+f from anywhere goes to table filter
+  - [x] press keybind on a cell (W), automatically write a WHERE condition for column 
 - [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
 - [ ] saved queries
 - [ ] help menu by pressing ?
