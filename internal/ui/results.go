@@ -27,6 +27,7 @@ type Results struct {
 	indexesTable         *tview.Table
 	filter               *tview.InputField
 	cellEditor           *CellEditor
+	query                *Query
 	selectedTable        string
 	sortColumn           SortColumn
 	dbColumns            []db.Column
@@ -62,9 +63,16 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	columnsPage.AddItem(columnsTable, 0, 4, false)
 	columnsPage.AddItem(indexesTable, 0, 1, false)
 
+	// Setup SQL Editor page
+	queryEditor, err := NewQuery(app, db)
+	if err != nil {
+		return nil, err
+	}
+
 	view := tview.NewPages()
 	view.AddPage("results", resultsPage, true, true)
 	view.AddPage("columns", columnsPage, true, false)
+	view.AddPage("query", queryEditor.view, true, false)
 
 	results := &Results{
 		app:          app,
@@ -73,6 +81,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		indexesTable: indexesTable,
 		view:         view,
 		db:           db,
+		query:        queryEditor,
 		filter:       filter,
 		pages:        pages,
 	}
@@ -359,6 +368,9 @@ func (r *Results) setKeyBindings() {
 			case event.Rune() == '1':
 				r.view.SwitchToPage("columns")
 				r.app.SetFocus(r.columnsTable)
+			case event.Rune() == '3':
+				r.view.SwitchToPage("query")
+				r.app.SetFocus(r.query.view)
 			case event.Rune() == 'y':
 				// Yank the cell text to clipboard
 				row, col := r.resultsTable.GetSelection()
