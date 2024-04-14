@@ -114,6 +114,12 @@ func (app *App) setKeyBindings() {
 			}
 		}
 
+		// if ctrl+f is pressed, focus on the filter input
+		if event.Key() == tcell.KeyCtrlF {
+			app.SetFocus(app.sidebar.list)
+			app.SetFocus(app.sidebar.filter)
+		}
+
 		return event
 	})
 }

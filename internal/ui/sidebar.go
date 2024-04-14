@@ -52,6 +52,16 @@ func NewSidebar(app *tview.Application, db *db.DBClient, results *Results) (*Sid
 func (sidebar *Sidebar) setKeyBindings() {
 	sidebar.view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if sidebar.app.GetFocus() != sidebar.filter {
+			// Ctrl+n / Ctrl+p to navigate the list
+			if event.Key() == tcell.KeyCtrlN {
+				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() + 1)
+				return event
+			}
+			if event.Key() == tcell.KeyCtrlP {
+				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
+				return event
+			}
+
 			if event.Key() == tcell.KeyRune {
 				switch event.Rune() {
 				case 'j':
@@ -119,6 +129,25 @@ func (s *Sidebar) renderFilterField() {
 	s.filter.SetFieldBackgroundColor(tcell.ColorNone)
 
 	s.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		currentItem := s.list.GetCurrentItem()
+
+		// Set the focus back to the list on tab key
+		if event.Key() == tcell.KeyTab {
+			s.app.SetFocus(s.list)
+			return event
+		}
+
+		// Ctrl+n / Ctrl+p to navigate the list
+		if event.Key() == tcell.KeyCtrlN {
+			s.list.SetCurrentItem(currentItem + 1)
+			return event
+		}
+		if event.Key() == tcell.KeyCtrlP {
+			s.list.SetCurrentItem(currentItem - 1)
+			return event
+		}
+
+		// Filter the table list in real time
 		currentText := s.filter.GetText()
 		if event.Key() == tcell.KeyEscape {
 			if currentText != "" {
@@ -142,6 +171,8 @@ func (s *Sidebar) renderFilterField() {
 
 		// Render the table list and filter in real time
 		s.renderTableList(currentText)
+
+		s.list.SetCurrentItem(currentItem)
 
 		return event
 	})
