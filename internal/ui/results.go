@@ -409,6 +409,8 @@ func (r *Results) setKeyBindings() {
 }
 
 func (r *Results) clearFilter() {
+	currentRow, currentCol := r.resultsTable.GetSelection()
+
 	if r.selectedTable == "" {
 		return
 	}
@@ -416,6 +418,8 @@ func (r *Results) clearFilter() {
 	r.filter.SetText("")
 	r.RenderTable(r.selectedTable, "")
 	r.app.SetFocus(r.resultsTable)
+
+	r.resultsTable.Select(currentRow, currentCol)
 }
 
 func (r *Results) toggleSort(columnName string) {
