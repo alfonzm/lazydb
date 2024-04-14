@@ -140,7 +140,7 @@ func (r *Results) RenderTable(table string, where string) error {
 		}
 
 		// else show cell editor
-		r.pages.SwitchToPage("editor")
+		r.pages.ShowPage("editor")
 		r.editor.textArea.SetText(r.resultsTable.GetCell(row, column).Text, true)
 	})
 
