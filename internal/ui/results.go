@@ -26,7 +26,7 @@ type Results struct {
 	columnsTable         *tview.Table
 	indexesTable         *tview.Table
 	filter               *tview.InputField
-	editor               *Editor
+	editor               *CellEditor
 	selectedTable        string
 	sortColumn           SortColumn
 	dbColumns            []db.Column

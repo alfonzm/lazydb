@@ -19,9 +19,9 @@
 
 ### QOL Improvements
 
+- [ ] tabs similar to Sequel Ace
 - [ ] easy way to show/hide columns
 - [ ] improve UI colors - similar to lazygit
-- [ ] tabs similar to Sequel Ace
 - [ ] query history
 - [ ] keyboard shorcuts
   - [ ] ctrl+hjkl to move panels (in addtn to tab)

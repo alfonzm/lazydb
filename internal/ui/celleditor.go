@@ -6,19 +6,19 @@ import (
 	"github.com/rivo/tview"
 )
 
-type Editor struct {
+type CellEditor struct {
 	app      *tview.Application
 	results  *Results
 	view     *tview.Flex
 	textArea *tview.TextArea
 }
 
-func NewEditor(
+func NewCellEditor(
 	app *tview.Application,
 	pages *tview.Pages,
 	results *Results,
 	db *db.DBClient,
-) (*Editor, error) {
+) (*CellEditor, error) {
 	textArea := tview.NewTextArea()
 	textArea.SetBorder(true).SetTitle("Edit field")
 
@@ -67,7 +67,7 @@ func NewEditor(
 			AddItem(nil, 0, 1, false), 100, 1, true).
 		AddItem(nil, 0, 1, false)
 
-	return &Editor{
+	return &CellEditor{
 		app:      app,
 		view:     recordEditor,
 		results:  results,

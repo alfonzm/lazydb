@@ -60,7 +60,7 @@ func (app *App) Connect(url string) error {
 	}
 
 	// Setup record editor component
-	editor, err := NewEditor(app.Application, pages, results, db)
+	editor, err := NewCellEditor(app.Application, pages, results, db)
 	if err != nil {
 		return err
 	}
