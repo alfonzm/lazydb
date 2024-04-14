@@ -26,7 +26,7 @@ type Results struct {
 	columnsTable         *tview.Table
 	indexesTable         *tview.Table
 	filter               *tview.InputField
-	editor               *CellEditor
+	cellEditor           *CellEditor
 	selectedTable        string
 	sortColumn           SortColumn
 	dbColumns            []db.Column
@@ -141,7 +141,7 @@ func (r *Results) RenderTable(table string, where string) error {
 
 		// else show cell editor
 		r.pages.ShowPage("editor")
-		r.editor.textArea.SetText(r.resultsTable.GetCell(row, column).Text, true)
+		r.cellEditor.textArea.SetText(r.resultsTable.GetCell(row, column).Text, true)
 	})
 
 	// Iterate over records and fill table

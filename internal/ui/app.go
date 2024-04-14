@@ -65,7 +65,7 @@ func (app *App) Connect(url string) error {
 		return err
 	}
 
-	results.editor = editor
+	results.cellEditor = editor
 
 	main := tview.NewFlex().
 		AddItem(sidebar.view, 0, 1, false).
@@ -93,7 +93,7 @@ func (app *App) setKeyBindings() {
 		}
 
 		// If the focus is on Editor, early return
-		if app.GetFocus() == app.results.editor.textArea {
+		if app.GetFocus() == app.results.cellEditor.textArea {
 			return event
 		}
 
