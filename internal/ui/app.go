@@ -59,20 +59,20 @@ func (app *App) Connect(url string) error {
 		return err
 	}
 
-	// Setup record editor component
-	editor, err := NewCellEditor(app.Application, pages, results, db)
+	// Setup record cellEditor component
+	cellEditor, err := NewCellEditor(app.Application, pages, results, db)
 	if err != nil {
 		return err
 	}
 
-	results.cellEditor = editor
+	results.cellEditor = cellEditor
 
 	main := tview.NewFlex().
 		AddItem(sidebar.view, 0, 1, false).
 		AddItem(results.view, 0, 6, false)
 
 	pages.AddPage("main", main, true, false)
-	pages.AddPage("editor", editor.view, true, false)
+	pages.AddPage("editor", cellEditor.view, true, false)
 
 	app.sidebar = sidebar
 	app.results = results
