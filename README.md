@@ -3,12 +3,13 @@
 ## TODO
 
 ### Basic Functionality
+
 - [ ] add new row
 - [ ] custom SQL editor on new page (by pressing 3)
 - [ ] support for other DB drivers (refactor to use interfaces)
 - [ ] show error modals for failed queries and other user-facing errors
 - [ ] table results pagination
-- [ ] update timestamp fields to NOW() 
+- [x] update timestamp fields to NOW()
 - [x] row value viewer (broken atm)
 - [x] view for columns and indexes
 - [x] home page - read config file for list of databases
@@ -17,6 +18,7 @@
 - [x] delete row
 
 ### QOL Improvements
+
 - [ ] easy way to show/hide columns
 - [ ] improve UI colors - similar to lazygit
 - [ ] tabs similar to Sequel Ace
@@ -25,7 +27,7 @@
   - [ ] ctrl+hjkl to move panels (in addtn to tab)
   - [ ] 0 and $ goes to start/end of row
   - [x] ctrl+f from anywhere goes to table filter
-  - [x] press keybind on a cell (W), automatically write a WHERE condition for column 
+  - [x] press keybind on a cell (W), automatically write a WHERE condition for column
 - [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
 - [ ] saved queries
 - [ ] help menu by pressing ?
