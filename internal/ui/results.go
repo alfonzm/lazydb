@@ -354,6 +354,8 @@ func (r *Results) setKeyBindings() {
 				r.toggleSortForCell()
 			case event.Rune() == 'd':
 				r.attemptDeleteRow()
+			case event.Rune() == 'w':
+				r.filterCurrentColumn()
 			case event.Rune() == '1':
 				r.view.SwitchToPage("columns")
 				r.app.SetFocus(r.columnsTable)
@@ -550,4 +552,10 @@ func replaceLastWordWithSuggestion(originalText, suggestion string) string {
 		newText := strings.Join(words, " ")
 		return newText
 	}
+}
+
+func (r *Results) filterCurrentColumn() {
+	_, col := r.resultsTable.GetSelection()
+	r.filter.SetText(fmt.Sprintf("%s = ", r.dbColumns[col].Name))
+	r.app.SetFocus(r.filter)
 }
