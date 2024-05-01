@@ -365,7 +365,7 @@ func (r *Results) setKeyBindings() {
 				// refresh table
 				r.RefreshTable()
 			case event.Rune() == 'd':
-				r.attemptDeleteRow()
+				r.attemptDeleteCell()
 			case event.Rune() == 'w':
 				r.filterCurrentColumn()
 			case event.Rune() == '1':
@@ -470,14 +470,22 @@ func (r *Results) toggleSortForCell() {
 	r.toggleSort("")
 }
 
-func (r *Results) attemptDeleteRow() {
-	row, _ := r.resultsTable.GetSelection()
+func (r *Results) attemptDeleteCell() {
+	row, col := r.resultsTable.GetSelection()
 
 	// if the selected row is the header, return
 	if row == 0 {
-		return
+		r.hideColumn(col)
+	} else {
+		r.attemptDeleteRow(row)
 	}
+}
 
+func (r *Results) hideColumn(col int) {
+	r.resultsTable.RemoveColumn(col)
+}
+
+func (r *Results) attemptDeleteRow(row int) {
 	// if the selected row is already selected for delete, confirm deletion
 	if r.selectedRowForDelete == row {
 		r.deleteRow(r.selectedRowForDelete)
