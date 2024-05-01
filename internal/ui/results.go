@@ -361,6 +361,9 @@ func (r *Results) setKeyBindings() {
 				r.app.SetFocus(r.filter)
 			case event.Rune() == 's':
 				r.toggleSortForCell()
+			case event.Rune() == 'r':
+				// refresh table
+				r.RefreshTable()
 			case event.Rune() == 'd':
 				r.attemptDeleteRow()
 			case event.Rune() == 'w':
@@ -574,4 +577,11 @@ func (r *Results) filterCurrentColumn() {
 	_, col := r.resultsTable.GetSelection()
 	r.filter.SetText(fmt.Sprintf("%s = ", r.dbColumns[col].Name))
 	r.app.SetFocus(r.filter)
+}
+
+func (r *Results) RefreshTable() {
+	// select same cell after rerender
+	row, col := r.resultsTable.GetSelection()
+	r.RenderTable(r.selectedTable, r.filter.GetText())
+	r.resultsTable.Select(row, col)
 }
