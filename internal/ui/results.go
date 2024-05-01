@@ -509,12 +509,13 @@ func (r *Results) deleteRow(row int) {
 		return
 	}
 
+	// Construct the WHERE clause for the DELETE statement
 	columns := r.dbColumns
-
 	where := ""
 
 	for i, col := range columns {
-		if col.DataType == "longtext" || col.DataType == "text" || col.DataType == "blob" {
+		switch col.DataType {
+		case "longtext", "text", "blob", "json":
 			continue
 		}
 
