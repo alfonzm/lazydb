@@ -473,6 +473,11 @@ func (r *Results) toggleSortForCell() {
 func (r *Results) attemptDeleteRow() {
 	row, _ := r.resultsTable.GetSelection()
 
+	// if the selected row is the header, return
+	if row == 0 {
+		return
+	}
+
 	// if the selected row is already selected for delete, confirm deletion
 	if r.selectedRowForDelete == row {
 		r.deleteRow(r.selectedRowForDelete)

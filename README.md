@@ -19,7 +19,7 @@
 
 ### QOL Improvements
 
-- [ ] tabs similar to Sequel Ace
+- [ ] tabs similar to Sequel Ace (keep sessions for each table opened)
 - [ ] easy way to show/hide columns
 - [ ] improve UI colors - similar to lazygit
 - [ ] query history
