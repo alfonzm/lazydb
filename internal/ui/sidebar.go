@@ -123,6 +123,7 @@ func (s *Sidebar) renderTableList(filter string) error {
 }
 
 func (s *Sidebar) selectTable(table string) {
+	s.results.ClearSort()
 	s.results.RenderTable(table, "")
 	s.results.Focus()
 }

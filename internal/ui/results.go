@@ -585,3 +585,8 @@ func (r *Results) RefreshTable() {
 	r.RenderTable(r.selectedTable, r.filter.GetText())
 	r.resultsTable.Select(row, col)
 }
+
+func (r *Results) ClearSort() {
+	r.sortColumn.Name = ""
+	r.sortColumn.Ascending = false
+}
