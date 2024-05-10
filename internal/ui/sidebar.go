@@ -55,10 +55,14 @@ func (sidebar *Sidebar) setKeyBindings() {
 			// Ctrl+n / Ctrl+p to navigate the list
 			if event.Key() == tcell.KeyCtrlN {
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() + 1)
+				tableName, _ := sidebar.list.GetItemText(sidebar.list.GetCurrentItem())
+				sidebar.selectTable(tableName, false)
 				return event
 			}
 			if event.Key() == tcell.KeyCtrlP {
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
+				tableName, _ := sidebar.list.GetItemText(sidebar.list.GetCurrentItem())
+				sidebar.selectTable(tableName, false)
 				return event
 			}
 
@@ -115,17 +119,20 @@ func (s *Sidebar) renderTableList(filter string) error {
 		}
 
 		s.list.AddItem(table, "", 0, func() {
-			s.selectTable(table)
+			s.selectTable(table, true)
 		})
 	}
 
 	return nil
 }
 
-func (s *Sidebar) selectTable(table string) {
+func (s *Sidebar) selectTable(table string, focus bool) {
 	s.results.ClearSort()
 	s.results.RenderTable(table, "")
-	s.results.Focus()
+
+	if focus {
+		s.results.Focus()
+	}
 }
 
 func (s *Sidebar) renderFilterField() {
@@ -144,10 +151,14 @@ func (s *Sidebar) renderFilterField() {
 		// Ctrl+n / Ctrl+p to navigate the list
 		if event.Key() == tcell.KeyCtrlN {
 			s.list.SetCurrentItem(currentItem + 1)
+			tableName, _ := s.list.GetItemText(s.list.GetCurrentItem())
+			s.selectTable(tableName, false)
 			return event
 		}
 		if event.Key() == tcell.KeyCtrlP {
 			s.list.SetCurrentItem(currentItem - 1)
+			tableName, _ := s.list.GetItemText(s.list.GetCurrentItem())
+			s.selectTable(tableName, false)
 			return event
 		}
 
@@ -188,7 +199,7 @@ func (s *Sidebar) renderFilterField() {
 			// if current item is > 0, select the item
 			if currentItem > 0 {
 				tableName, _ := s.list.GetItemText(currentItem)
-				s.selectTable(tableName)
+				s.selectTable(tableName, true)
 				return
 			}
 
