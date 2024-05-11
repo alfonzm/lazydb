@@ -10,13 +10,13 @@ import (
 )
 
 type Connections struct {
-	app  *App
 	view *tview.Flex
 	list *tview.List
+	tab  *Tab
 }
 
 func NewConnections(
-	app *App,
+	tab *Tab,
 	db *db.DBClient,
 ) (*Connections, error) {
 	connConfigurations, err := config.GetConnections()
@@ -28,7 +28,7 @@ func NewConnections(
 	view := tview.NewFlex()
 
 	connections := &Connections{
-		app:  app,
+		tab:  tab,
 		view: view,
 		list: list,
 	}
@@ -77,6 +77,6 @@ func (c *Connections) setKeyBindings() {
 
 func (c *Connections) selectConnection(url string) func() {
 	return func() {
-		c.app.Connect(url)
+		c.tab.Connect(url)
 	}
 }
