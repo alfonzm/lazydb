@@ -9,7 +9,7 @@ type Tab struct {
 	app       *tview.Application
 	dbClient  *db.DBClient
 	name      string
-	lastFocus string
+	lastFocus tview.Primitive
 	pages     *tview.Pages
 
 	sidebar     *Sidebar
@@ -29,9 +29,9 @@ func NewTab(app *tview.Application, dbClient *db.DBClient) (*Tab, error) {
 		return nil, err
 	}
 
-	tab.pages.AddPage("connections", conns.view, true, true)
+	tab.connections = conns
 
-	// tab.setKeyBindings()
+	tab.pages.AddPage("connections", conns.view, true, true)
 
 	return tab, nil
 }
@@ -79,36 +79,33 @@ func (t *Tab) Connect(url string) error {
 }
 
 func (t *Tab) OnActivate() {
-	// t.Focus("sidebar")
+	if t.lastFocus != nil {
+		t.app.SetFocus(t.lastFocus)
+	}
 }
 
 func (t *Tab) OnDeactivate() {
+	t.lastFocus = t.app.GetFocus()
+}
+
+func (t *Tab) OnPressTab() {
+	if t.sidebar == nil || t.results == nil {
+		return
+	}
+
 	switch t.app.GetFocus() {
-	case t.connections.list:
-		t.lastFocus = "connections"
-	case t.results.resultsTable:
-		t.lastFocus = "results"
 	case t.sidebar.list:
-		t.lastFocus = "sidebar"
+		t.results.Focus()
+	case t.results.resultsTable:
+		t.app.SetFocus(t.sidebar.list)
 	case t.results.columnsTable:
-		t.lastFocus = "columns"
-	case t.sidebar.results.indexesTable:
-		t.lastFocus = "indexes"
+		t.app.SetFocus(t.sidebar.results.indexesTable)
+	case t.results.indexesTable:
+		t.app.SetFocus(t.sidebar.list)
 	}
 }
 
-func (t *Tab) Focus(component string) {
-	switch component {
-	case "sidebar":
-		t.app.SetFocus(t.sidebar.list)
-	case "results":
-		t.results.Focus()
-	case "indexes":
-		t.app.SetFocus(t.sidebar.results.indexesTable)
-	case "columns":
-		t.app.SetFocus(t.results.columnsTable)
-	case "connections":
-		t.app.SetFocus(t.connections.list)
-	}
-	// t.lastFocus = "indexes"
+func (t *Tab) FocusFindTable() {
+	t.app.SetFocus(t.sidebar.list)
+	t.app.SetFocus(t.sidebar.filter)
 }

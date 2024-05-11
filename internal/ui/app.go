@@ -44,6 +44,11 @@ func Start() error {
 }
 
 func (app *App) addNewTab() {
+	currentTab := app.currentTab()
+	if currentTab != nil {
+		currentTab.OnDeactivate()
+	}
+
 	tab, err := NewTab(app.Application, app.dbClient)
 	if err != nil {
 		return
@@ -54,8 +59,7 @@ func (app *App) addNewTab() {
 	app.tabs = append(app.tabs, tab)
 
 	app.tabPages.AddPage(strconv.Itoa(newTabIndex), tab.pages, true, true)
-	app.currentTabIndex = newTabIndex
-	app.selectTab(app.currentTabIndex)
+	app.selectTab(newTabIndex)
 	app.renderTabHeaders()
 }
 
@@ -65,28 +69,39 @@ func (app *App) renderTabHeaders() {
 	}
 }
 
-func (app *App) prevTab() {
-	if app.currentTabIndex > 0 {
-		app.selectTab(app.currentTabIndex - 1)
+func (app *App) onDeactivateCurrentTab() {
+	currentTab := app.currentTab()
+	if currentTab != nil {
+		currentTab.OnDeactivate()
 	}
+}
+
+func (app *App) prevTab() {
+	if app.currentTabIndex <= 0 {
+		return
+	}
+
+	app.onDeactivateCurrentTab()
+	app.selectTab(app.currentTabIndex - 1)
 }
 
 func (app *App) nextTab() {
-	if app.currentTabIndex < len(app.tabs)-1 {
-		app.selectTab(app.currentTabIndex + 1)
+	if app.currentTabIndex >= len(app.tabs) {
+		return
 	}
+
+	app.onDeactivateCurrentTab()
+	app.selectTab(app.currentTabIndex + 1)
 }
 
 func (app *App) currentTab() *Tab {
+	if len(app.tabs) == 0 {
+		return nil
+	}
 	return app.tabs[app.currentTabIndex]
 }
 
 func (app *App) selectTab(newTabIndex int) {
-	currentTab := app.currentTab()
-	if currentTab != nil {
-		// currentTab.OnDeactivate()
-	}
-
 	app.currentTabIndex = newTabIndex
 
 	app.tabHeaders.Select(0, app.currentTabIndex)
@@ -130,30 +145,11 @@ func (app *App) setKeyBindings() {
 			}
 		}
 
-		if event.Key() == tcell.KeyTab {
-			switch app.GetFocus() {
-			case currentTab.sidebar.list:
-				currentTab.Focus("results")
-				// currentTab.results.Focus()
-			case currentTab.results.resultsTable:
-				currentTab.Focus("sidebar")
-			case currentTab.results.columnsTable:
-				// app.SetFocus(currentTab.results.indexesTable)
-				currentTab.Focus("indexes")
-			case currentTab.results.indexesTable:
-				currentTab.Focus("sidebar")
-			}
-			return event
-		}
-
 		switch event.Key() {
 		case tcell.KeyCtrlF:
-			app.SetFocus(currentTab.sidebar.list)
-			app.SetFocus(currentTab.sidebar.filter)
-		case tcell.KeyCtrlR:
-			currentTab.results.Focus()
-		case tcell.KeyCtrlT:
-			app.SetFocus(currentTab.sidebar.list)
+			currentTab.FocusFindTable()
+		case tcell.KeyTab:
+			currentTab.OnPressTab()
 		}
 
 		return event
