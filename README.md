@@ -46,6 +46,7 @@ go build ./cmd/lazydb
 - [ ] saved queries
 - [ ] help menu by pressing ?
 - [ ] improve SQL editor autocomplete for DB columns
+- [ ] save/load sessions
 - [x] easy way to show/hide columns
 - [x] yank cell value
 - [x] sort columns by highlighting header name and pressing a keybind
