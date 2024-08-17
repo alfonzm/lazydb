@@ -1,5 +1,17 @@
 # lazydb
 
+## Development
+
+```
+go run ./cmd/lazydb
+```
+
+## Build
+
+```
+go build ./cmd/lazydb
+```
+
 ## TODO
 
 ### Basic Functionality
