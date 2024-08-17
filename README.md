@@ -49,3 +49,7 @@ go build ./cmd/lazydb
 - [x] easy way to show/hide columns
 - [x] yank cell value
 - [x] sort columns by highlighting header name and pressing a keybind
+
+### Bugs
+
+- [ ] doing a W(HERE) keypress on a cell where sort is applied uses the arrow key as cell name
