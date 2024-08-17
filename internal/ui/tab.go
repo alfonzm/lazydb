@@ -75,7 +75,7 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	pages.SwitchToPage("main")
 	t.app.SetFocus(sidebar.list)
 
-  t.UpdateTabName(dbName)
+	t.UpdateTabName(dbName)
 
 	return nil
 }
@@ -113,6 +113,6 @@ func (t *Tab) FocusFindTable() {
 }
 
 func (t *Tab) UpdateTabName(name string) {
-  t.name = name
-  t.app.RenderTabHeaders()
+	t.name = name
+	t.app.RenderTabHeaders()
 }

@@ -77,22 +77,22 @@ func (app *App) onDeactivateCurrentTab() {
 }
 
 func (app *App) prevTab() {
-  targetTabIndex := app.currentTabIndex - 1
+	targetTabIndex := app.currentTabIndex - 1
 
-  if targetTabIndex < 0 {
-    targetTabIndex = len(app.tabs) - 1
-  }
+	if targetTabIndex < 0 {
+		targetTabIndex = len(app.tabs) - 1
+	}
 
-  app.onDeactivateCurrentTab()
-  app.selectTab(targetTabIndex)
+	app.onDeactivateCurrentTab()
+	app.selectTab(targetTabIndex)
 }
 
 func (app *App) nextTab() {
-  targetTabIndex := app.currentTabIndex + 1
+	targetTabIndex := app.currentTabIndex + 1
 
-  if targetTabIndex >= len(app.tabs) {
-    targetTabIndex = 0
-  }
+	if targetTabIndex >= len(app.tabs) {
+		targetTabIndex = 0
+	}
 
 	app.onDeactivateCurrentTab()
 	app.selectTab(targetTabIndex)
@@ -106,9 +106,9 @@ func (app *App) currentTab() *Tab {
 }
 
 func (app *App) selectTab(newTabIndex int) {
-  if newTabIndex < 0 || newTabIndex >= len(app.tabs) {
-    return
-  }
+	if newTabIndex < 0 || newTabIndex >= len(app.tabs) {
+		return
+	}
 
 	app.currentTabIndex = newTabIndex
 

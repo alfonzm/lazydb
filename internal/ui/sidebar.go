@@ -19,7 +19,12 @@ type Sidebar struct {
 	filter  *tview.InputField
 }
 
-func NewSidebar(tab *Tab, app *tview.Application, db *db.DBClient, results *Results) (*Sidebar, error) {
+func NewSidebar(
+	tab *Tab,
+	app *tview.Application,
+	db *db.DBClient,
+	results *Results,
+) (*Sidebar, error) {
 	list := tview.NewList()
 	filter := tview.NewInputField()
 
@@ -38,7 +43,7 @@ func NewSidebar(tab *Tab, app *tview.Application, db *db.DBClient, results *Resu
 		results: results,
 		app:     app,
 		filter:  filter,
-    tab:     tab,
+		tab:     tab,
 	}
 
 	// Render all components
@@ -136,7 +141,7 @@ func (s *Sidebar) selectTable(table string, focus bool) {
 		s.results.Focus()
 	}
 
-  s.tab.UpdateTabName(table)
+	s.tab.UpdateTabName(table)
 }
 
 func (s *Sidebar) renderFilterField() {
