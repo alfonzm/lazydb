@@ -22,7 +22,7 @@ type Config struct {
 
 func readConfig() (*Config, error) {
 	// Open the file
-	filePath := filepath.Join(os.Getenv("HOME"), ".config", "lazysql.yml")
+	filePath := filepath.Join(os.Getenv("HOME"), ".config", "lazydb.yml")
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Error opening config file, make sure it exists at %s", filePath)
