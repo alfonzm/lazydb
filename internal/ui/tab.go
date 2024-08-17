@@ -6,22 +6,22 @@ import (
 )
 
 type Tab struct {
-	app       *tview.Application
 	dbClient  *db.DBClient
 	name      string
 	lastFocus tview.Primitive
 	pages     *tview.Pages
+	app       *App
 
 	sidebar     *Sidebar
 	results     *Results
 	connections *Connections
 }
 
-func NewTab(app *tview.Application, dbClient *db.DBClient) (*Tab, error) {
+func NewTab(app *App, dbClient *db.DBClient) (*Tab, error) {
 	tab := &Tab{
-		app:   app,
 		pages: tview.NewPages(),
 		name:  "New Tab",
+		app:   app,
 	}
 
 	conns, err := NewConnections(tab, dbClient)
@@ -36,7 +36,7 @@ func NewTab(app *tview.Application, dbClient *db.DBClient) (*Tab, error) {
 	return tab, nil
 }
 
-func (t *Tab) Connect(url string) error {
+func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	db, err := db.NewDBClient(url)
 	if err != nil {
 		return err
@@ -45,16 +45,16 @@ func (t *Tab) Connect(url string) error {
 	pages := t.pages
 
 	// Setup results component
-	results, err := NewResults(t.app, pages, db)
+	results, err := NewResults(t.app.Application, pages, db)
 
 	// Setup sidebar components
-	sidebar, err := NewSidebar(t.app, db, results)
+	sidebar, err := NewSidebar(t, t.app.Application, db, results)
 	if err != nil {
 		return err
 	}
 
 	// Setup record cellEditor component
-	cellEditor, err := NewCellEditor(t.app, pages, results, db)
+	cellEditor, err := NewCellEditor(t.app.Application, pages, results, db)
 	if err != nil {
 		return err
 	}
@@ -74,6 +74,8 @@ func (t *Tab) Connect(url string) error {
 	// Switch to main page
 	pages.SwitchToPage("main")
 	t.app.SetFocus(sidebar.list)
+
+  t.UpdateTabName(dbName)
 
 	return nil
 }
@@ -108,4 +110,9 @@ func (t *Tab) OnPressTab() {
 func (t *Tab) FocusFindTable() {
 	t.app.SetFocus(t.sidebar.list)
 	t.app.SetFocus(t.sidebar.filter)
+}
+
+func (t *Tab) UpdateTabName(name string) {
+  t.name = name
+  t.app.RenderTabHeaders()
 }

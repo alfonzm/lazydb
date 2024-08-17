@@ -49,7 +49,7 @@ func (app *App) addNewTab() {
 		currentTab.OnDeactivate()
 	}
 
-	tab, err := NewTab(app.Application, app.dbClient)
+	tab, err := NewTab(app, app.dbClient)
 	if err != nil {
 		return
 	}
@@ -60,10 +60,10 @@ func (app *App) addNewTab() {
 
 	app.tabPages.AddPage(strconv.Itoa(newTabIndex), tab.pages, true, true)
 	app.selectTab(newTabIndex)
-	app.renderTabHeaders()
+	app.RenderTabHeaders()
 }
 
-func (app *App) renderTabHeaders() {
+func (app *App) RenderTabHeaders() {
 	for i, tab := range app.tabs {
 		app.tabHeaders.SetCell(0, i, tview.NewTableCell(tab.name))
 	}
@@ -77,21 +77,25 @@ func (app *App) onDeactivateCurrentTab() {
 }
 
 func (app *App) prevTab() {
-	if app.currentTabIndex <= 0 {
-		return
-	}
+  targetTabIndex := app.currentTabIndex - 1
 
-	app.onDeactivateCurrentTab()
-	app.selectTab(app.currentTabIndex - 1)
+  if targetTabIndex < 0 {
+    targetTabIndex = len(app.tabs) - 1
+  }
+
+  app.onDeactivateCurrentTab()
+  app.selectTab(targetTabIndex)
 }
 
 func (app *App) nextTab() {
-	if app.currentTabIndex >= len(app.tabs) {
-		return
-	}
+  targetTabIndex := app.currentTabIndex + 1
+
+  if targetTabIndex >= len(app.tabs) {
+    targetTabIndex = 0
+  }
 
 	app.onDeactivateCurrentTab()
-	app.selectTab(app.currentTabIndex + 1)
+	app.selectTab(targetTabIndex)
 }
 
 func (app *App) currentTab() *Tab {
@@ -102,6 +106,10 @@ func (app *App) currentTab() *Tab {
 }
 
 func (app *App) selectTab(newTabIndex int) {
+  if newTabIndex < 0 || newTabIndex >= len(app.tabs) {
+    return
+  }
+
 	app.currentTabIndex = newTabIndex
 
 	app.tabHeaders.Select(0, app.currentTabIndex)

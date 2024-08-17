@@ -43,9 +43,9 @@ func NewConnections(
 	}
 	sort.Strings(connNames)
 
-	for _, index := range connNames {
-		conn := connConfigurations[index]
-		list.AddItem(conn.Database, "", 0, connections.selectConnection(conn.String()))
+	for _, dbName := range connNames {
+		conn := connConfigurations[dbName]
+		list.AddItem(conn.Database, "", 0, connections.selectConnection(conn.String(), dbName))
 	}
 
 	view.SetDirection(tview.FlexRow).
@@ -75,8 +75,8 @@ func (c *Connections) setKeyBindings() {
 	})
 }
 
-func (c *Connections) selectConnection(url string) func() {
+func (c *Connections) selectConnection(url string, dbName string) func() {
 	return func() {
-		c.tab.Connect(url)
+		c.tab.ConnectDatabase(url, dbName)
 	}
 }
