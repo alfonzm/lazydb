@@ -528,7 +528,7 @@ func (r *Results) deleteRow(row int) {
 
 	for i, col := range columns {
 		switch col.DataType {
-		case "longtext", "text", "blob", "json":
+		case "longtext", "text", "blob", "json", "datetime":
 			continue
 		}
 
