@@ -299,20 +299,6 @@ func (r *Results) setKeyBindings() {
 		return event
 	})
 
-	r.structure.columnsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyRune {
-			switch event.Rune() {
-			case '2':
-				r.view.SwitchToPage("results")
-				r.app.SetFocus(r.resultsTable)
-			case '/':
-				panic("TODO: Implement filter for columns table")
-			}
-		}
-
-		return event
-	})
-
 	// Filter field key bindings
 	r.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
