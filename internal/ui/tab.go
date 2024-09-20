@@ -100,9 +100,9 @@ func (t *Tab) OnPressTab() {
 		t.results.Focus()
 	case t.results.resultsTable:
 		t.app.SetFocus(t.sidebar.list)
-	case t.results.columnsTable:
-		t.app.SetFocus(t.sidebar.results.indexesTable)
-	case t.results.indexesTable:
+	case t.results.structure.columnsTable:
+		t.app.SetFocus(t.sidebar.results.structure.indexesTable)
+	case t.results.structure.indexesTable:
 		t.app.SetFocus(t.sidebar.list)
 	}
 }

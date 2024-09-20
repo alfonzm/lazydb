@@ -23,8 +23,7 @@ type Results struct {
 	db                   *db.DBClient
 	view                 *tview.Pages
 	resultsTable         *tview.Table
-	columnsTable         *tview.Table
-	indexesTable         *tview.Table
+	structure            *Structure
 	filter               *tview.InputField
 	cellEditor           *CellEditor
 	query                *Query
@@ -53,15 +52,10 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 		AddItem(resultsTable, 0, 1, false)
 
 	// Setup Columns page
-	columnsTable := tview.NewTable()
-	indexesTable := tview.NewTable()
-
-	columnsPage := tview.NewFlex()
-	columnsPage.SetBorder(false).
-		SetTitle("Columns")
-	columnsPage.SetDirection(tview.FlexRow)
-	columnsPage.AddItem(columnsTable, 0, 4, false)
-	columnsPage.AddItem(indexesTable, 0, 1, false)
+	structure, err := NewStructure(app, db)
+	if err != nil {
+		return nil, err
+	}
 
 	// Setup SQL Editor page
 	queryEditor, err := NewQuery(app, db)
@@ -71,14 +65,13 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 
 	view := tview.NewPages()
 	view.AddPage("results", resultsPage, true, true)
-	view.AddPage("columns", columnsPage, true, false)
+	view.AddPage("columns", structure.view, true, false)
 	view.AddPage("query", queryEditor.view, true, false)
 
 	results := &Results{
 		app:          app,
 		resultsTable: resultsTable,
-		columnsTable: columnsTable,
-		indexesTable: indexesTable,
+		structure:    structure,
 		view:         view,
 		db:           db,
 		query:        queryEditor,
@@ -93,7 +86,7 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 }
 
 // RenderTable renders the table with the given name and optional where clause
-// It will also render the columns and indexes tables
+// It will also re-render the Structure page
 func (r *Results) RenderTable(table string, where string) error {
 	r.selectedTable = table
 
@@ -177,102 +170,7 @@ func (r *Results) RenderTable(table string, where string) error {
 	r.resultsTable.ScrollToBeginning()
 	r.resultsTable.Select(0, 0)
 
-	r.RenderColumnsTable(table, dbColumns)
-
-	return nil
-}
-
-func (r *Results) RenderColumnsTable(table string, dbColumns []db.Column) error {
-	r.columnsTable.Clear()
-
-	columnMetaColumns := []string{"Field", "Type", "Null", "Key", "Default", "Extra"}
-
-	// set headers from columns
-	for i, column := range columnMetaColumns {
-		r.columnsTable.SetCell(
-			0,
-			i,
-			tview.NewTableCell(column).SetAlign(tview.AlignCenter).SetSelectable(true),
-		)
-	}
-
-	// Iterate over records and fill table
-	for i, col := range dbColumns {
-		defaultValue := ""
-		if col.Default.Valid {
-			defaultValue = col.Default.String
-		} else if col.Null {
-			defaultValue = "NULL"
-		}
-
-		r.columnsTable.SetCell(
-			i+1,
-			0,
-			tview.NewTableCell(col.Name).SetAlign(tview.AlignLeft).SetSelectable(true),
-		)
-		r.columnsTable.SetCell(
-			i+1,
-			1,
-			tview.NewTableCell(col.DataType).SetAlign(tview.AlignLeft).SetSelectable(true),
-		)
-		r.columnsTable.SetCell(
-			i+1,
-			2,
-			tview.NewTableCell(fmt.Sprintf("%t", col.Null)).
-				SetAlign(tview.AlignLeft).
-				SetSelectable(true),
-		)
-		r.columnsTable.SetCell(
-			i+1,
-			3,
-			tview.NewTableCell(col.Key).SetAlign(tview.AlignLeft).SetSelectable(true),
-		)
-		r.columnsTable.SetCell(
-			i+1,
-			4,
-			tview.NewTableCell(defaultValue).SetAlign(tview.AlignLeft).SetSelectable(true),
-		)
-		r.columnsTable.SetCell(
-			i+1,
-			5,
-			tview.NewTableCell(col.Extra).SetAlign(tview.AlignLeft).SetSelectable(true),
-		)
-	}
-
-	r.columnsTable.SetBorder(true)
-	r.columnsTable.SetSelectable(true, true)
-	r.columnsTable.SetFixed(1, 0)
-	r.columnsTable.ScrollToBeginning()
-	r.columnsTable.Select(0, 0)
-
-	r.RenderIndexesTable(table)
-
-	return nil
-}
-
-func (r *Results) RenderIndexesTable(table string) error {
-	indexes, err := r.db.GetIndexes(table)
-	if err != nil {
-		return fmt.Errorf("Error getting indexes")
-	}
-
-	r.indexesTable.Clear()
-
-	// render indexes
-	for i, index := range indexes {
-		for j, indexColumn := range index {
-			r.indexesTable.SetCell(
-				i,
-				j,
-				tview.NewTableCell(indexColumn).SetAlign(tview.AlignLeft).SetSelectable(true),
-			)
-		}
-	}
-
-	r.indexesTable.SetBorder(true)
-	r.indexesTable.SetSelectable(true, true)
-	r.indexesTable.SetFixed(1, 0)
-	r.indexesTable.ScrollToBeginning()
+	r.structure.Render(table, dbColumns)
 
 	return nil
 }
@@ -337,14 +235,14 @@ func (r *Results) renderFilterField() {
 }
 
 func (r *Results) Focus() {
-	// focus  the active page content (table or columns)
+	// focus the active page content (table or columns)
 	frontPage, _ := r.view.GetFrontPage()
 
 	switch frontPage {
 	case "results":
 		r.app.SetFocus(r.resultsTable)
 	case "columns":
-		r.app.SetFocus(r.columnsTable)
+		r.app.SetFocus(r.structure.view)
 	}
 }
 
@@ -370,7 +268,7 @@ func (r *Results) setKeyBindings() {
 				r.filterCurrentColumn()
 			case event.Rune() == '1':
 				r.view.SwitchToPage("columns")
-				r.app.SetFocus(r.columnsTable)
+				r.app.SetFocus(r.structure.view)
 			case event.Rune() == '3':
 				r.view.SwitchToPage("query")
 				r.app.SetFocus(r.query.view)
@@ -401,12 +299,14 @@ func (r *Results) setKeyBindings() {
 		return event
 	})
 
-	r.columnsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	r.structure.columnsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyRune {
 			switch event.Rune() {
 			case '2':
 				r.view.SwitchToPage("results")
 				r.app.SetFocus(r.resultsTable)
+			case '/':
+				panic("TODO: Implement filter for columns table")
 			}
 		}
 
