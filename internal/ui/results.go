@@ -82,6 +82,9 @@ func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*R
 	results.renderFilterField()
 	results.setKeyBindings()
 
+	// TODO: Not sure if this is the best way
+	results.structure.results = results
+
 	return results, nil
 }
 

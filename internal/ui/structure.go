@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
@@ -11,6 +12,9 @@ import (
 type Structure struct {
 	app          *tview.Application
 	db           *db.DBClient
+	results      *Results
+	tableName    string
+	dbColumns    []db.Column
 	view         *tview.Flex
 	columnsView  *tview.Flex
 	columnFilter *tview.InputField
@@ -27,14 +31,8 @@ func NewStructure(
 
 	columnFilter := tview.NewInputField()
 	columnFilter.SetBorder(false)
-	columnFilter.SetLabel("FILTER ").
-		SetFieldBackgroundColor(tcell.ColorNone).
-		SetDoneFunc(func(key tcell.Key) {
-			if key == tcell.KeyEnter {
-				columnFilterText := columnFilter.GetText()
-				panic("implement me - columnFilterText: " + columnFilterText)
-			}
-		})
+	columnFilter.SetLabel("Filter ").
+		SetFieldBackgroundColor(tcell.ColorNone)
 
 	columnsView := tview.NewFlex()
 	columnsView.SetBorder(true).
@@ -59,6 +57,7 @@ func NewStructure(
 		db:           db,
 		columnsTable: columnsTable,
 		indexesTable: indexesTable,
+		columnFilter: columnFilter,
 	}
 
 	structure.setKeyBindings()
@@ -67,6 +66,9 @@ func NewStructure(
 }
 
 func (s *Structure) Render(table string, dbColumns []db.Column) error {
+	s.tableName = table
+	s.dbColumns = dbColumns
+
 	s.columnsTable.Clear()
 
 	columnMetaColumns := []string{"Field", "Type", "Null", "Key", "Default", "Extra"}
@@ -80,8 +82,21 @@ func (s *Structure) Render(table string, dbColumns []db.Column) error {
 		)
 	}
 
-	// Iterate over records and fill table
-	for i, col := range dbColumns {
+	filteredDbColumns := []db.Column{}
+
+	filterText := s.columnFilter.GetText()
+	if filterText != "" {
+		for _, column := range dbColumns {
+			if strings.Contains(strings.ToLower(column.Name), strings.ToLower(filterText)) {
+				filteredDbColumns = append(filteredDbColumns, column)
+			}
+		}
+	} else {
+		filteredDbColumns = dbColumns
+	}
+
+	// Iterate over records (i.e. table columns) and fill table
+	for i, col := range filteredDbColumns {
 		defaultValue := ""
 		if col.Default.Valid {
 			defaultValue = col.Default.String
@@ -163,16 +178,33 @@ func (s *Structure) RenderIndexesTable(table string) error {
 func (s *Structure) setKeyBindings() {
 	s.app.SetFocus(s.columnsTable)
 
-	s.columnsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	s.view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyRune {
 			switch event.Rune() {
 			case '2':
-				panic("TODO: go back to results table")
-			case '/':
-				panic("TODO: Implement filter for columns table")
+				s.results.view.SwitchToPage("results")
+				s.results.app.SetFocus(s.results.resultsTable)
+			case '/', 'f', 'w':
+				s.app.SetFocus(s.columnFilter)
+				return nil // prevents adding the char to the input field
 			}
 		}
 
 		return event
+	})
+
+	s.columnFilter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Filter and re-render the columns list in real time
+		s.Render(s.tableName, s.dbColumns)
+
+		return event
+	})
+	s.columnFilter.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			s.columnFilter.SetText("")
+			s.Render(s.tableName, s.dbColumns)
+		}
+
+		s.app.SetFocus(s.columnsTable)
 	})
 }
