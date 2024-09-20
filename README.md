@@ -51,5 +51,4 @@ go build ./cmd/lazydb
 
 ### Bugs
 
-- [ ] delete row sometimes doesn't work on certain column types (maybe JSON?) - attempt to delete again by just ID
 - [ ] doing a W(HERE) keypress on a cell where sort is applied uses the arrow key as cell name
