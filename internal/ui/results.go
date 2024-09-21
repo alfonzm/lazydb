@@ -18,7 +18,7 @@ type SortColumn struct {
 }
 
 type Results struct {
-	app                  *tview.Application
+	app                  *App
 	pages                *tview.Pages
 	db                   *db.DBClient
 	view                 *tview.Pages
@@ -33,7 +33,7 @@ type Results struct {
 	selectedRowForDelete int
 }
 
-func NewResults(app *tview.Application, pages *tview.Pages, db *db.DBClient) (*Results, error) {
+func NewResults(app *App, pages *tview.Pages, db *db.DBClient) (*Results, error) {
 	// Setup Results page
 	resultsTable := tview.NewTable()
 	filter := tview.NewInputField()
@@ -95,7 +95,7 @@ func (r *Results) RenderTable(table string, where string) error {
 
 	dbColumns, err := r.db.GetColumns(table)
 	if err != nil {
-		return fmt.Errorf("Error getting columns")
+		return err
 	}
 
 	r.dbColumns = dbColumns
@@ -110,7 +110,7 @@ func (r *Results) RenderTable(table string, where string) error {
 
 	dbRecords, err := r.db.GetRecords(table, where, orderBy)
 	if err != nil {
-		return fmt.Errorf("Error getting records")
+		return err
 	}
 
 	r.resultsTable.Clear()
@@ -228,11 +228,15 @@ func (r *Results) renderFilterField() {
 	r.filter.SetLabel("WHERE ").
 		SetFieldBackgroundColor(tcell.ColorNone).
 		SetDoneFunc(func(key tcell.Key) {
+			// On submit filter field, re-render table
 			if key == tcell.KeyEnter {
 				where := r.filter.GetText()
-				r.RenderTable(r.selectedTable, where)
-
-				r.app.SetFocus(r.resultsTable)
+				err := r.RenderTable(r.selectedTable, where)
+				if err != nil {
+					r.app.ShowError(fmt.Sprintf("%v", err))
+				} else {
+					r.app.SetFocus(r.resultsTable)
+				}
 			}
 		})
 }

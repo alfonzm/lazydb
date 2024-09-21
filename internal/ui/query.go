@@ -7,7 +7,7 @@ import (
 )
 
 type Query struct {
-	app      *tview.Application
+	app      *App
 	db       *db.DBClient
 	textArea *tview.TextArea
 	table    *tview.Table
@@ -15,7 +15,7 @@ type Query struct {
 }
 
 func NewQuery(
-	app *tview.Application,
+	app *App,
 	db *db.DBClient,
 ) (*Query, error) {
 	view := tview.NewFlex()

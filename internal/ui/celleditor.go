@@ -1,20 +1,22 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type CellEditor struct {
-	app      *tview.Application
+	app      *App
 	results  *Results
 	view     *tview.Flex
 	textArea *tview.TextArea
 }
 
 func NewCellEditor(
-	app *tview.Application,
+	app *App,
 	pages *tview.Pages,
 	results *Results,
 	db *db.DBClient,
@@ -37,8 +39,8 @@ func NewCellEditor(
 
 			if err := db.UpdateRecordById(results.selectedTable, id, record); err != nil {
 				// TODO: Show error message in the UI
-				panic(err)
-				// return event
+				app.ShowError(fmt.Sprintf("%v", err))
+				return event
 			}
 
 			// refresh the records table
@@ -63,8 +65,8 @@ func NewCellEditor(
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(textArea, 15, 1, true).
-			AddItem(nil, 0, 1, false), 100, 1, true).
+			AddItem(textArea, 10, 1, true).
+			AddItem(nil, 0, 1, false), 80, 1, true).
 		AddItem(nil, 0, 1, false)
 
 	return &CellEditor{

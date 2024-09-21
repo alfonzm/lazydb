@@ -45,7 +45,7 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	pages := t.pages
 
 	// Setup results component
-	results, err := NewResults(t.app.Application, pages, db)
+	results, err := NewResults(t.app, pages, db)
 
 	// Setup sidebar components
 	sidebar, err := NewSidebar(t, t.app.Application, db, results)
@@ -54,7 +54,7 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	}
 
 	// Setup record cellEditor component
-	cellEditor, err := NewCellEditor(t.app.Application, pages, results, db)
+	cellEditor, err := NewCellEditor(t.app, pages, results, db)
 	if err != nil {
 		return err
 	}

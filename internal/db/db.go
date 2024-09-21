@@ -79,7 +79,7 @@ func (client *DBClient) GetRecords(
 
 	rows, err := client.db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get records from table: %w", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	defer rows.Close()

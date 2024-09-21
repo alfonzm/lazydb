@@ -47,7 +47,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 	// Instructions at the bottom most of the modal
 	// saying press Y to copy the error, ESC or Q to close modal
 	legend := tview.NewTextView().
-		SetText("[Y] Copy / [Esc] Close").
+		SetText("[Y] Copy error / [Esc] Close").
 		SetTextColor(tcell.ColorYellow).
 		SetTextAlign(tview.AlignCenter)
 
@@ -63,7 +63,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 	alertFlex.AddItem(legend, 1, 1, false)
 
 	// Modal
-	e.alertModal = modal(alertFlex, 80, 12)
+	e.alertModal = modal(alertFlex, 100, 15)
 	e.alertContainer = alertFlex
 
 	e.setKeyBindings()
@@ -73,7 +73,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 	e.app.appPages.RemovePage("modal")
 	e.app.appPages.AddPage("modal", e.app.errorModal.alertModal, true, false)
 	e.app.appPages.ShowPage("modal")
-	e.app.SetFocus(e.app.errorModal.alertContainer)
+	e.app.SetFocus(e.alertContainer)
 }
 
 func (e *ErrorModal) setKeyBindings() {

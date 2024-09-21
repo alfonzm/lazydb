@@ -10,7 +10,7 @@ import (
 )
 
 type Structure struct {
-	app          *tview.Application
+	app          *App
 	db           *db.DBClient
 	results      *Results
 	tableName    string
@@ -23,7 +23,7 @@ type Structure struct {
 }
 
 func NewStructure(
-	app *tview.Application,
+	app *App,
 	db *db.DBClient,
 ) (*Structure, error) {
 	// Setup Columns view
