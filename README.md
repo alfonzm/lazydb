@@ -19,8 +19,8 @@ go build ./cmd/lazydb
 - [ ] add new row
 - [ ] custom SQL editor on new page (by pressing 3)
 - [ ] support for other DB drivers (refactor to use interfaces)
-- [ ] show error modals for failed queries and other user-facing errors
 - [ ] table results pagination
+- [x] show error modals for failed queries and other user-facing errors
 - [x] update timestamp fields to NOW()
 - [x] row value viewer (broken atm)
 - [x] view for columns and indexes
