@@ -126,7 +126,7 @@ func (client *DBClient) GetRecords(
 func (client *DBClient) GetColumns(tableName string) ([]Column, error) {
 	rows, err := client.db.Query("DESCRIBE " + tableName)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rows.Close()
 
