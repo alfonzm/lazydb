@@ -287,7 +287,6 @@ func (r *Results) setKeyBindings() {
 
 				// On yank, Highlight the cell for a short time
 				oldBgColor := cell.BackgroundColor
-				cell.SetBackgroundColor(tcell.ColorGreen)
 				r.resultsTable.SetSelectedStyle(
 					tcell.StyleDefault.Background(tcell.ColorYellow).Foreground(tcell.ColorBlack),
 				)

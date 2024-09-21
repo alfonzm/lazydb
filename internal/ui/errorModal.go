@@ -1,8 +1,11 @@
 package ui
 
 import (
+	"time"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.design/x/clipboard"
 )
 
 type ErrorModal struct {
@@ -10,6 +13,8 @@ type ErrorModal struct {
 	alertContainer *tview.Flex
 	app            *App
 	lastFocus      tview.Primitive
+	errorString    string
+	errorText      *tview.TextView
 }
 
 func NewErrorModal() (*ErrorModal, error) {
@@ -40,9 +45,10 @@ func (e *ErrorModal) RenderError(errorText string) {
 	}
 
 	// Modal text
-	text := tview.NewTextView().
+	e.errorText = tview.NewTextView().
 		SetText(errorText).
-		SetTextColor(tcell.ColorRed)
+		SetTextColor(tcell.ColorRed).
+		SetDynamicColors(true)
 
 	// Instructions at the bottom most of the modal
 	// saying press Y to copy the error, ESC or Q to close modal
@@ -59,7 +65,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 		// SetTitleColor(tcell.ColorRed)
 	alertFlex.SetDirection(tview.FlexRow)
 
-	alertFlex.AddItem(text, 0, 1, false)
+	alertFlex.AddItem(e.errorText, 0, 1, false)
 	alertFlex.AddItem(legend, 1, 1, false)
 
 	// Modal
@@ -67,8 +73,8 @@ func (e *ErrorModal) RenderError(errorText string) {
 	e.alertContainer = alertFlex
 
 	e.setKeyBindings()
-
 	e.lastFocus = e.app.GetFocus()
+	e.errorString = errorText
 
 	e.app.appPages.RemovePage("modal")
 	e.app.appPages.AddPage("modal", e.app.errorModal.alertModal, true, false)
@@ -78,12 +84,29 @@ func (e *ErrorModal) RenderError(errorText string) {
 
 func (e *ErrorModal) setKeyBindings() {
 	e.alertContainer.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEscape:
+		if event.Key() == tcell.KeyEscape {
 			e.app.appPages.RemovePage("modal")
 			e.app.appPages.SwitchToPage("app")
 			e.app.SetFocus(e.lastFocus)
 		}
+
+		if event.Key() == tcell.KeyRune {
+			switch event.Rune() {
+			case 'y':
+				// copy to clipboard errorTExt
+				clipboard.Write(clipboard.FmtText, []byte(e.errorString))
+
+				// highlight the error text, use the same logic as the code below
+				e.errorText.SetText("[black:yellow]" + e.errorString)
+
+				time.AfterFunc(75*time.Millisecond, func() {
+					// return to default
+					e.errorText.SetText("[::]" + e.errorString)
+					e.app.Draw()
+				})
+			}
+		}
+
 		return event
 	})
 }

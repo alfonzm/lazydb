@@ -172,8 +172,6 @@ func (app *App) setKeyBindings() {
 			currentTab.FocusFindTable()
 		case tcell.KeyTab:
 			currentTab.OnPressTab()
-		case tcell.KeyCtrlP:
-			app.ShowError("OH SHIT AN ERROR MESSAGE WTF")
 		}
 
 		return event
