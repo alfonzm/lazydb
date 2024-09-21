@@ -34,7 +34,7 @@ func NewSidebar(
 	view.SetBorder(true)
 	view.SetDirection(tview.FlexRow).
 		AddItem(filter, 1, 1, false).
-		AddItem(list, 0, 1, false)
+		AddItem(list, 0, 1, true)
 
 	sidebar := &Sidebar{
 		view:    view,

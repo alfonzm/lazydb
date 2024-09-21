@@ -62,10 +62,10 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	results.cellEditor = cellEditor
 
 	main := tview.NewFlex().
-		AddItem(sidebar.view, 0, 1, false).
+		AddItem(sidebar.view, 0, 1, true).
 		AddItem(results.view, 0, 6, false)
 
-	pages.AddPage("main", main, true, false)
+	pages.AddPage("main", main, true, true)
 	pages.AddPage("editor", cellEditor.view, true, false)
 
 	t.sidebar = sidebar

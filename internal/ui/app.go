@@ -10,34 +10,48 @@ import (
 
 type App struct {
 	*tview.Application
-	container       *tview.Flex
+	appPages        *tview.Pages
+	appContainer    *tview.Flex
 	tabHeaders      *tview.Table
 	tabPages        *tview.Pages
 	tabs            []*Tab
 	currentTabIndex int
 	dbClient        *db.DBClient
+	errorModal      *ErrorModal
 }
 
 func Start() error {
+	appPages := tview.NewPages()
 	container := tview.NewFlex().SetDirection(tview.FlexRow)
 	tabHeaders := tview.NewTable().SetSelectable(false, true)
 	tabPages := tview.NewPages()
+	application := tview.NewApplication()
+	errorModal, err := NewErrorModal()
+	if err != nil {
+		return err
+	}
 
 	app := &App{
-		Application: tview.NewApplication(),
-		container:   container,
-		tabHeaders:  tabHeaders,
-		tabPages:    tabPages,
+		Application:  application,
+		appPages:     appPages,
+		appContainer: container,
+		tabHeaders:   tabHeaders,
+		tabPages:     tabPages,
+		errorModal:   errorModal,
 	}
+
+	errorModal.app = app
 
 	app.addNewTab()
 
 	container.AddItem(tabHeaders, 1, 0, false)
 	container.AddItem(tabPages, 0, 1, true)
 
+	appPages.AddPage("app", container, true, true)
+
 	app.setKeyBindings()
 
-	if err := app.SetRoot(container, true).Run(); err != nil {
+	if err := app.SetRoot(appPages, true).Run(); err != nil {
 		return err
 	}
 	return nil
@@ -158,8 +172,14 @@ func (app *App) setKeyBindings() {
 			currentTab.FocusFindTable()
 		case tcell.KeyTab:
 			currentTab.OnPressTab()
+		case tcell.KeyCtrlP:
+			app.ShowError("OH SHIT AN ERROR MESSAGE WTF")
 		}
 
 		return event
 	})
+}
+
+func (app *App) ShowError(errorText string) {
+	app.errorModal.RenderError(errorText)
 }
