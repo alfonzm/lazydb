@@ -39,6 +39,32 @@ func NewDBClient(connection string) (*DBClient, error) {
 	return &DBClient{db}, nil
 }
 
+func (client *DBClient) GetDatabases() ([]string, error) {
+	var dbNames []string
+
+	rows, err := client.db.Query("SHOW DATABASES")
+	if err != nil {
+		return nil, err
+	}
+
+	// get database names
+	for rows.Next() {
+		var database string
+		if err := rows.Scan(&database); err != nil {
+			return nil, err
+		}
+
+		dbNames = append(dbNames, database)
+	}
+
+	return dbNames, nil
+}
+
+func (client *DBClient) GetTablesOfDatabase(database string) ([]string, error) {
+	client.db.Exec("USE " + database)
+	return client.GetTables()
+}
+
 func (client *DBClient) GetTables() ([]string, error) {
 	rows, err := client.db.Query("SHOW TABLES")
 	if err != nil {
