@@ -19,11 +19,11 @@ type ErrorModal struct {
 
 func NewErrorModal() (*ErrorModal, error) {
 	alertModal := tview.NewBox()
-	alertFlex := tview.NewFlex()
+	alertContainer := tview.NewFlex()
 
 	errorModal := &ErrorModal{
 		alertModal:     alertModal,
-		alertContainer: alertFlex,
+		alertContainer: alertContainer,
 	}
 
 	errorModal.setKeyBindings()
@@ -46,26 +46,26 @@ func (e *ErrorModal) RenderError(errorText string) {
 		SetTextAlign(tview.AlignCenter)
 
 	// Modal body
-	alertFlex := tview.NewFlex()
-	alertFlex.SetBorder(true).
+	alertContainer := tview.NewFlex()
+	alertContainer.SetBorder(true).
 		SetTitle("ERROR")
 		// SetBorderColor(tcell.ColorRed).
 		// SetTitleColor(tcell.ColorRed)
-	alertFlex.SetDirection(tview.FlexRow)
+	alertContainer.SetDirection(tview.FlexRow)
 
-	alertFlex.AddItem(e.errorText, 0, 1, false)
-	alertFlex.AddItem(legend, 1, 1, false)
+	alertContainer.AddItem(e.errorText, 0, 1, false)
+	alertContainer.AddItem(legend, 1, 1, false)
 
 	// Modal
-	e.alertModal = CreateModal(alertFlex, 100, 15)
-	e.alertContainer = alertFlex
+	e.alertContainer = alertContainer
+	e.alertModal = CreateModal(alertContainer, 100, 15)
 
 	e.setKeyBindings()
 	e.lastFocus = e.app.GetFocus()
 	e.errorString = errorText
 
 	e.app.appPages.RemovePage("modal")
-	e.app.appPages.AddPage("modal", e.app.errorModal.alertModal, true, false)
+	e.app.appPages.AddPage("modal", e.alertModal, true, false)
 	e.app.appPages.ShowPage("modal")
 	e.app.SetFocus(e.alertContainer)
 }
@@ -73,9 +73,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 func (e *ErrorModal) setKeyBindings() {
 	e.alertContainer.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			e.app.appPages.RemovePage("modal")
-			e.app.appPages.SwitchToPage("app")
-			e.app.SetFocus(e.lastFocus)
+			e.Close()
 		}
 
 		if event.Key() == tcell.KeyRune {
@@ -97,4 +95,9 @@ func (e *ErrorModal) setKeyBindings() {
 
 		return event
 	})
+}
+
+func (e *ErrorModal) Close() {
+	e.app.appPages.SwitchToPage("app")
+	e.app.SetFocus(e.lastFocus)
 }

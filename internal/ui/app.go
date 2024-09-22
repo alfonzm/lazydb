@@ -18,6 +18,7 @@ type App struct {
 	currentTabIndex int
 	dbClient        *db.DBClient
 	errorModal      *ErrorModal
+	commandModal    *CommandModal
 }
 
 func Start() error {
@@ -27,6 +28,7 @@ func Start() error {
 	tabPages := tview.NewPages()
 	application := tview.NewApplication()
 	errorModal, err := NewErrorModal()
+	commandModal, err := NewCommandModal()
 	if err != nil {
 		return err
 	}
@@ -38,9 +40,12 @@ func Start() error {
 		tabHeaders:   tabHeaders,
 		tabPages:     tabPages,
 		errorModal:   errorModal,
+		commandModal: commandModal,
 	}
 
+	// TODO: Not sure if this is the best way to pass the app to the modals
 	errorModal.app = app
+	commandModal.app = app
 
 	app.addNewTab()
 
@@ -172,6 +177,8 @@ func (app *App) setKeyBindings() {
 			currentTab.FocusFindTable()
 		case tcell.KeyTab:
 			currentTab.OnPressTab()
+		case tcell.KeyCtrlP:
+			app.commandModal.Render()
 		}
 
 		return event
@@ -185,12 +192,11 @@ func (app *App) ShowError(errorText string) {
 /* https://github.com/rivo/tview/wiki/CreateModal */
 // Create modal container centered on screen
 func CreateModal(p tview.Primitive, width, height int) tview.Primitive {
-  return tview.NewFlex().
-  AddItem(nil, 0, 1, false).
-  AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-  AddItem(nil, 0, 1, false).
-  AddItem(p, height, 1, true).
-  AddItem(nil, 0, 1, false), width, 1, true).
-  AddItem(nil, 0, 1, false)
+	return tview.NewFlex().
+		AddItem(nil, 0, 1, false).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+			AddItem(nil, 0, 1, false).
+			AddItem(p, height, 1, true).
+			AddItem(nil, 0, 1, false), width, 1, true).
+		AddItem(nil, 0, 1, false)
 }
-
