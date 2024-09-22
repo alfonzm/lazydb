@@ -63,13 +63,13 @@ func (sidebar *Sidebar) setKeyBindings() {
 			if event.Key() == tcell.KeyCtrlN {
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() + 1)
 				tableName, _ := sidebar.list.GetItemText(sidebar.list.GetCurrentItem())
-				sidebar.selectTable(tableName, false)
+				sidebar.SelectTable(tableName, false)
 				return event
 			}
 			if event.Key() == tcell.KeyCtrlP {
 				sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
 				tableName, _ := sidebar.list.GetItemText(sidebar.list.GetCurrentItem())
-				sidebar.selectTable(tableName, false)
+				sidebar.SelectTable(tableName, false)
 				return event
 			}
 
@@ -126,16 +126,24 @@ func (s *Sidebar) renderTableList(filter string) error {
 		}
 
 		s.list.AddItem(table, "", 0, func() {
-			s.selectTable(table, true)
+			s.SelectTable(table, true)
 		})
 	}
 
 	return nil
 }
 
-func (s *Sidebar) selectTable(table string, focus bool) {
+func (s *Sidebar) SelectTable(table string, focus bool) {
 	s.results.ClearSort()
 	s.results.RenderTable(table, "")
+
+	// Select the table in the sidebar
+	for i := 0; i < s.list.GetItemCount(); i++ {
+		if name, _ := s.list.GetItemText(i); name == table {
+			s.list.SetCurrentItem(i)
+			break
+		}
+	}
 
 	if focus {
 		s.results.Focus()
@@ -161,13 +169,13 @@ func (s *Sidebar) renderFilterField() {
 		if event.Key() == tcell.KeyCtrlN {
 			s.list.SetCurrentItem(currentItem + 1)
 			tableName, _ := s.list.GetItemText(s.list.GetCurrentItem())
-			s.selectTable(tableName, false)
+			s.SelectTable(tableName, false)
 			return event
 		}
 		if event.Key() == tcell.KeyCtrlP {
 			s.list.SetCurrentItem(currentItem - 1)
 			tableName, _ := s.list.GetItemText(s.list.GetCurrentItem())
-			s.selectTable(tableName, false)
+			s.SelectTable(tableName, false)
 			return event
 		}
 
@@ -208,7 +216,7 @@ func (s *Sidebar) renderFilterField() {
 			// if current item is > 0, select the item
 			if currentItem > 0 {
 				tableName, _ := s.list.GetItemText(currentItem)
-				s.selectTable(tableName, true)
+				s.SelectTable(tableName, true)
 				return
 			}
 
