@@ -32,18 +32,6 @@ func NewErrorModal() (*ErrorModal, error) {
 }
 
 func (e *ErrorModal) RenderError(errorText string) {
-	/* https://github.com/rivo/tview/wiki/Modal */
-	// Create modal container centered on screen
-	modal := func(p tview.Primitive, width, height int) tview.Primitive {
-		return tview.NewFlex().
-			AddItem(nil, 0, 1, false).
-			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-				AddItem(nil, 0, 1, false).
-				AddItem(p, height, 1, true).
-				AddItem(nil, 0, 1, false), width, 1, true).
-			AddItem(nil, 0, 1, false)
-	}
-
 	// Modal text
 	e.errorText = tview.NewTextView().
 		SetText(errorText).
@@ -69,7 +57,7 @@ func (e *ErrorModal) RenderError(errorText string) {
 	alertFlex.AddItem(legend, 1, 1, false)
 
 	// Modal
-	e.alertModal = modal(alertFlex, 100, 15)
+	e.alertModal = CreateModal(alertFlex, 100, 15)
 	e.alertContainer = alertFlex
 
 	e.setKeyBindings()

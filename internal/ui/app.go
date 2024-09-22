@@ -181,3 +181,16 @@ func (app *App) setKeyBindings() {
 func (app *App) ShowError(errorText string) {
 	app.errorModal.RenderError(errorText)
 }
+
+/* https://github.com/rivo/tview/wiki/CreateModal */
+// Create modal container centered on screen
+func CreateModal(p tview.Primitive, width, height int) tview.Primitive {
+  return tview.NewFlex().
+  AddItem(nil, 0, 1, false).
+  AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+  AddItem(nil, 0, 1, false).
+  AddItem(p, height, 1, true).
+  AddItem(nil, 0, 1, false), width, 1, true).
+  AddItem(nil, 0, 1, false)
+}
+
