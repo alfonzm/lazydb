@@ -68,7 +68,7 @@ func (app *App) addNewTab() {
 		currentTab.OnDeactivate()
 	}
 
-	tab, err := NewTab(app, app.dbClient)
+	tab, err := NewTab(app)
 	if err != nil {
 		return
 	}

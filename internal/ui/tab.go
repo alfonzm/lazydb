@@ -6,7 +6,6 @@ import (
 )
 
 type Tab struct {
-	dbClient  *db.DBClient
 	name      string
 	lastFocus tview.Primitive
 	pages     *tview.Pages
@@ -17,14 +16,14 @@ type Tab struct {
 	connections *Connections
 }
 
-func NewTab(app *App, dbClient *db.DBClient) (*Tab, error) {
+func NewTab(app *App) (*Tab, error) {
 	tab := &Tab{
 		pages: tview.NewPages(),
 		name:  "New Tab",
 		app:   app,
 	}
 
-	conns, err := NewConnections(tab, dbClient)
+	conns, err := NewConnections(tab)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/alfonzm/lazydb/internal/config"
-	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -17,7 +16,6 @@ type Connections struct {
 
 func NewConnections(
 	tab *Tab,
-	db *db.DBClient,
 ) (*Connections, error) {
 	connConfigurations, err := config.GetConnections()
 	if err != nil {
