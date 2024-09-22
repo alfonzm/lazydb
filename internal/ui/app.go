@@ -176,7 +176,8 @@ func (app *App) setKeyBindings() {
 		case tcell.KeyTab:
 			currentTab.OnPressTab()
 		case tcell.KeyCtrlP:
-			app.commandModal.Render()
+			app.commandModal.Render(currentTab)
+			return nil // Stop event propagation
 		}
 
 		return event

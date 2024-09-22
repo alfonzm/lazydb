@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/alfonzm/lazydb/internal/config"
 	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/rivo/tview"
 )
@@ -15,6 +16,7 @@ type Tab struct {
 	results     *Results
 	connections *Connections
 
+	connection     config.Connection
 	dbClient       *db.DBClient
 	databaseTables map[string][]string
 }
@@ -38,8 +40,10 @@ func NewTab(app *App) (*Tab, error) {
 	return tab, nil
 }
 
-func (t *Tab) ConnectDatabase(url string, dbName string) error {
-	db, err := db.NewDBClient(url)
+func (t *Tab) ConnectDatabase(conn config.Connection, dbName string) error {
+	t.connection = conn
+
+	db, err := db.NewDBClient(t.connection.String())
 	if err != nil {
 		return err
 	}
@@ -126,20 +130,12 @@ func (t *Tab) UpdateTabName(name string) {
 func (t *Tab) CacheDatabaseTables() error {
 	t.databaseTables = make(map[string][]string)
 
-	dbNames, err := t.dbClient.GetDatabases()
+	tables, err := t.dbClient.GetDatabases()
 	if err != nil {
 		return err
 	}
 
-	// for each database, get tables
-	for _, dbName := range dbNames {
-		tableNames, err := t.dbClient.GetTablesOfDatabase(dbName)
-		if err != nil {
-			return err
-		}
-
-		t.databaseTables[dbName] = tableNames
-	}
+	t.databaseTables = tables
 
 	return nil
 }

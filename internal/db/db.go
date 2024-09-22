@@ -39,30 +39,45 @@ func NewDBClient(connection string) (*DBClient, error) {
 	return &DBClient{db}, nil
 }
 
-func (client *DBClient) GetDatabases() ([]string, error) {
-	var dbNames []string
+func (client *DBClient) GetDatabases() (map[string][]string, error) {
+	databaseTables := make(map[string][]string)
 
-	rows, err := client.db.Query("SHOW DATABASES")
+	rows, err := client.db.Query("SELECT table_schema, table_name FROM information_schema.tables;")
 	if err != nil {
 		return nil, err
 	}
 
-	// get database names
+	defer rows.Close()
+
+	// For each database table
 	for rows.Next() {
-		var database string
-		if err := rows.Scan(&database); err != nil {
+		var dbName string
+		var tableName string
+
+		if err := rows.Scan(&dbName, &tableName); err != nil {
 			return nil, err
 		}
 
-		dbNames = append(dbNames, database)
+		// Skip mysql, information_schema, sys, performance_schema databases
+		dbNamesToSkip := []string{"mysql", "information_schema", "sys", "performance_schema"}
+		if contains(dbNamesToSkip, dbName) {
+			continue
+		}
+
+		// If the database is not in the map keys, add it
+		if _, ok := databaseTables[dbName]; !ok {
+			databaseTables[dbName] = []string{}
+		}
+
+		// Add table name to the list of tables for this database
+
+		// sanitize string, remove next lines
+		tableName = strings.ReplaceAll(tableName, "\n", "")
+
+		databaseTables[dbName] = append(databaseTables[dbName], tableName)
 	}
 
-	return dbNames, nil
-}
-
-func (client *DBClient) GetTablesOfDatabase(database string) ([]string, error) {
-	client.db.Exec("USE " + database)
-	return client.GetTables()
+	return databaseTables, nil
 }
 
 func (client *DBClient) GetTables() ([]string, error) {
@@ -272,4 +287,14 @@ func (client *DBClient) DeleteRecord(tableName string, where string) error {
 	}
 
 	return nil
+}
+
+// Helper function to check if a slice contains a string
+func contains(slice []string, item string) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
 }
