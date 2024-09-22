@@ -3,7 +3,6 @@ package ui
 import (
 	"strconv"
 
-	"github.com/alfonzm/lazydb/internal/db"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -16,7 +15,6 @@ type App struct {
 	tabPages        *tview.Pages
 	tabs            []*Tab
 	currentTabIndex int
-	dbClient        *db.DBClient
 	errorModal      *ErrorModal
 	commandModal    *CommandModal
 }
