@@ -250,6 +250,8 @@ func (r *Results) Focus() {
 		r.app.SetFocus(r.resultsTable)
 	case "columns":
 		r.app.SetFocus(r.structure.view)
+	default:
+		r.app.SetFocus(r.resultsTable)
 	}
 }
 
