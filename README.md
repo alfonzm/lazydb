@@ -9,7 +9,13 @@ go run ./cmd/lazydb
 ## Build
 
 ```
-go build ./cmd/lazydb
+make
+```
+
+## Install binary globally
+
+```
+mv lazydb /usr/local/bin/lazydb
 ```
 
 ## TODO
