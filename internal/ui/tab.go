@@ -14,6 +14,9 @@ type Tab struct {
 	sidebar     *Sidebar
 	results     *Results
 	connections *Connections
+
+	dbClient       *db.DBClient
+	databaseTables map[string][]string
 }
 
 func NewTab(app *App) (*Tab, error) {
@@ -40,6 +43,8 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	if err != nil {
 		return err
 	}
+
+	t.dbClient = db
 
 	pages := t.pages
 
@@ -75,6 +80,8 @@ func (t *Tab) ConnectDatabase(url string, dbName string) error {
 	t.app.SetFocus(sidebar.list)
 
 	t.UpdateTabName(dbName)
+
+	t.CacheDatabaseTables()
 
 	return nil
 }
@@ -114,4 +121,25 @@ func (t *Tab) FocusFindTable() {
 func (t *Tab) UpdateTabName(name string) {
 	t.name = name
 	t.app.RenderTabHeaders()
+}
+
+func (t *Tab) CacheDatabaseTables() error {
+	t.databaseTables = make(map[string][]string)
+
+	dbNames, err := t.dbClient.GetDatabases()
+	if err != nil {
+		return err
+	}
+
+	// for each database, get tables
+	for _, dbName := range dbNames {
+		tableNames, err := t.dbClient.GetTablesOfDatabase(dbName)
+		if err != nil {
+			return err
+		}
+
+		t.databaseTables[dbName] = tableNames
+	}
+
+	return nil
 }
