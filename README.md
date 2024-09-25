@@ -40,10 +40,13 @@ mv lazydb /usr/local/bin/lazydb
 - [ ] tabs similar to Sequel Ace (keep sessions for each table opened)
 - [ ] dynamic hiding/showing of columns in a new modal - similar to Lazygit staging/unstaging files where pressing space toggles, and pressing A toggles all
 - [ ] improve UI colors - similar to lazygit
+- [ ] on results table, pressing a key will open a modal with the detailed view (similar to metabase)
 - [ ] keyboard shorcuts
+  - [ ] close current tab
   - [ ] ctrl+hjkl to move panels (in addtn to tab)
   - [ ] 0 and $ goes to start/end of row
   - [ ] ctrl+p command palette type to go to table/database
+  - [ ] X on a cell deletes the cell value (to the default empty value, e.g. 0 or NULL etc)
   - [x] ctrl+f from anywhere goes to table filter
   - [x] press keybind on a cell (W), automatically write a WHERE condition for column
 - [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
@@ -58,3 +61,4 @@ mv lazydb /usr/local/bin/lazydb
 ### Bugs
 
 - [ ] doing a W(HERE) keypress on a cell where sort is applied uses the arrow key as cell name
+- [ ] when trying to update a column, and it errors, the enter is registered as a new line: it should not add a new line
