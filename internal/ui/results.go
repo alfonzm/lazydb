@@ -281,6 +281,8 @@ func (r *Results) setKeyBindings() {
 			case event.Rune() == '3':
 				r.view.SwitchToPage("query")
 				r.app.SetFocus(r.query.view)
+			case event.Rune() == 'p':
+				r.pasteClipboardTextToCurrentCell()
 			case event.Rune() == 'y':
 				// Yank the cell text to clipboard
 				row, col := r.resultsTable.GetSelection()
@@ -406,18 +408,23 @@ func (r *Results) attemptDeleteRow(row int) {
 	}
 }
 
-func (r *Results) deleteRow(row int) {
-	rowToDelete, col := r.resultsTable.GetSelection()
+func (r *Results) deleteRow(rowToDelete int) {
+	// Get last selected column, for reselecting after deletion
+	_, col := r.resultsTable.GetSelection()
 
-	if row > 0 {
-		rowToDelete = row
-	}
+	// Construct the WHERE clause for the DELETE statement of this row
+	where := r.getWhereClauseByTableRow(rowToDelete)
 
-	if rowToDelete == 0 {
+	if err := r.db.DeleteRecord(r.selectedTable, where); err != nil {
+		fmt.Printf("Error deleting record: %v\n", err)
 		return
 	}
 
-	// Construct the WHERE clause for the DELETE statement
+	r.RenderTable(r.selectedTable, r.filter.GetText())
+	r.resultsTable.Select(rowToDelete, col)
+}
+
+func (r *Results) getWhereClauseByTableRow(row int) string {
 	columns := r.dbColumns
 	where := ""
 
@@ -427,7 +434,7 @@ func (r *Results) deleteRow(row int) {
 			continue
 		}
 
-		cell := r.resultsTable.GetCell(rowToDelete, i)
+		cell := r.resultsTable.GetCell(row, i)
 
 		if cell.Text == "" {
 			continue
@@ -442,13 +449,11 @@ func (r *Results) deleteRow(row int) {
 		}
 	}
 
-	if err := r.db.DeleteRecord(r.selectedTable, where); err != nil {
-		fmt.Printf("Error deleting record: %v\n", err)
-		return
-	}
+	return where
+}
 
-	r.RenderTable(r.selectedTable, r.filter.GetText())
-	r.resultsTable.Select(rowToDelete, col)
+func (r *Results) getDbIdByTableRow(row int) string {
+	return r.resultsTable.GetCell(row, 0).Text
 }
 
 func replaceLastWordWithSuggestion(originalText, suggestion string) string {
@@ -498,4 +503,34 @@ func (r *Results) RefreshTable() {
 func (r *Results) ClearSort() {
 	r.sortColumn.Name = ""
 	r.sortColumn.Ascending = false
+}
+
+func (r *Results) pasteClipboardTextToCurrentCell() {
+	row, col := r.resultsTable.GetSelection()
+	cell := r.resultsTable.GetCell(row, col)
+
+	newValue, err := clipboard.ReadAll()
+	if err != nil {
+		r.app.ShowError(fmt.Sprintf("Error retrieving text from clipboard: %v", err))
+		return
+	}
+
+	// Check if text is not empty
+	if newValue == "" {
+		return
+	}
+
+	// Attempt to update the DB for this ID
+	record := map[string]interface{}{
+		r.dbColumns[col].Name: newValue,
+	}
+
+	id := r.getDbIdByTableRow(row)
+
+	if err := r.db.UpdateRecordById(r.selectedTable, id, record); err != nil {
+		r.app.ShowError(fmt.Sprintf("Error updating record: %v", err))
+		return
+	}
+
+	cell.SetText(newValue)
 }
