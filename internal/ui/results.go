@@ -324,6 +324,7 @@ func (r *Results) clearFilter() {
 		return
 	}
 
+	r.selectedRowForDelete = 0
 	r.filter.SetText("")
 	r.RenderTable(r.selectedTable, "")
 	r.app.SetFocus(r.resultsTable)
