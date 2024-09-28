@@ -46,8 +46,10 @@ mv lazydb /usr/local/bin/lazydb
   - [ ] ctrl+hjkl to move panels (in addtn to tab)
   - [ ] 0 and $ goes to start/end of row
   - [ ] ctrl+p command palette type to go to table/database
-  - [ ] X on a cell deletes the cell value (to the default empty value, e.g. 0 or NULL etc)
-  - [ ] I on a cell searches for id (inserts WHERE id = )
+  - [ ] cell shortcuts
+    - [ ] X sets cell value to default value
+    - [ ] I on a cell searches for id (inserts WHERE id = )
+    - [ ] P on a cell pastes value from clipboard
   - [x] ctrl+f from anywhere goes to table filter
   - [x] press keybind on a cell (W), automatically write a WHERE condition for column
 - [ ] queries history (press ctrl+n or ctrl+p on WHERE filter scrolls through history)
