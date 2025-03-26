@@ -215,6 +215,14 @@ func (s *Sidebar) renderFilterField() {
 			currentText += string(event.Rune())
 		}
 
+		// Ctrl+T to open the table in a new tab
+		if event.Key() == tcell.KeyCtrlT {
+			currentItem := s.list.GetCurrentItem()
+			tableName, _ := s.list.GetItemText(currentItem)
+			s.SelectTableInNewTab(tableName)
+			return event
+		}
+
 		// Render the table list and filter in real time
 		s.renderTableList(currentText)
 
