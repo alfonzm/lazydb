@@ -105,6 +105,14 @@ func (sidebar *Sidebar) setKeyBindings() {
 			// so we need to move it back to the previous item
 			sidebar.list.SetCurrentItem(sidebar.list.GetCurrentItem() - 1)
 		}
+
+		// Ctrl+T to open the table in a new tab
+		if event.Key() == tcell.KeyCtrlT {
+			tableName, _ := sidebar.list.GetItemText(sidebar.list.GetCurrentItem())
+			sidebar.SelectTableInNewTab(tableName)
+			return nil
+		}
+
 		return event
 	})
 }
@@ -150,6 +158,12 @@ func (s *Sidebar) SelectTable(table string, focus bool) {
 	}
 
 	s.tab.UpdateTabName(table)
+}
+
+func (s *Sidebar) SelectTableInNewTab(table string) {
+	s.tab.app.addNewTab()
+	s.tab.app.currentTab().ConnectDatabase(s.tab.connection, s.tab.connection.Database)
+	s.tab.app.currentTab().sidebar.SelectTable(table, true)
 }
 
 func (s *Sidebar) renderFilterField() {
