@@ -45,7 +45,7 @@ func (t *Tab) ConnectDatabase(conn config.Connection, dbName string) error {
 
 	db, err := db.NewDBClient(t.connection.String())
 	if err != nil {
-		return err
+		return t.showConnectError(err)
 	}
 
 	t.dbClient = db
@@ -54,17 +54,20 @@ func (t *Tab) ConnectDatabase(conn config.Connection, dbName string) error {
 
 	// Setup results component
 	results, err := NewResults(t.app, pages, db)
+	if err != nil {
+		return t.showConnectError(err)
+	}
 
 	// Setup sidebar components
 	sidebar, err := NewSidebar(t, t.app.Application, db, results)
 	if err != nil {
-		return err
+		return t.showConnectError(err)
 	}
 
 	// Setup record cellEditor component
 	cellEditor, err := NewCellEditor(t.app, pages, results, db)
 	if err != nil {
-		return err
+		return t.showConnectError(err)
 	}
 
 	results.cellEditor = cellEditor
@@ -88,6 +91,11 @@ func (t *Tab) ConnectDatabase(conn config.Connection, dbName string) error {
 	t.CacheDatabaseTables()
 
 	return nil
+}
+
+func (t *Tab) showConnectError(err error) error {
+	t.app.ShowError(err.Error())
+	return err
 }
 
 func (t *Tab) OnActivate() {

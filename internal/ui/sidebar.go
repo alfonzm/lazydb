@@ -162,7 +162,9 @@ func (s *Sidebar) SelectTable(table string, focus bool) {
 
 func (s *Sidebar) SelectTableInNewTab(table string) {
 	s.tab.app.addNewTab()
-	s.tab.app.currentTab().ConnectDatabase(s.tab.connection, s.tab.connection.Database)
+	if err := s.tab.app.currentTab().ConnectDatabase(s.tab.connection, s.tab.connection.Database); err != nil {
+		return
+	}
 	s.tab.app.currentTab().sidebar.SelectTable(table, true)
 }
 

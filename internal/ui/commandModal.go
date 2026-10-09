@@ -142,7 +142,9 @@ func (cm *CommandModal) CloseWithoutFocus() {
 
 func (cm *CommandModal) SelectConnection(conn config.Connection, table string) {
 	cm.app.addNewTab()
-	cm.app.currentTab().ConnectDatabase(conn, conn.Database)
+	if err := cm.app.currentTab().ConnectDatabase(conn, conn.Database); err != nil {
+		return
+	}
 	cm.app.currentTab().sidebar.SelectTable(table, true)
 	cm.CloseWithoutFocus()
 }
